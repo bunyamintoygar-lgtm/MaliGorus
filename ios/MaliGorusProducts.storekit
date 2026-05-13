@@ -1,0 +1,129 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "454BF415",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "416CB22A",
+      "localizations" : [
+        {
+          "description" : "Soru sormak ve anketler için 100 kredi.",
+          "displayName" : "100 Kredi",
+          "locale" : "tr"
+        }
+      ],
+      "productID" : "credit_100",
+      "referenceName" : "100 Kredi Paketi",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "EAB58F3D",
+      "localizations" : [
+        {
+          "description" : "Soru sormak ve anketler için 1000 kredi.",
+          "displayName" : "1000 Kredi",
+          "locale" : "tr"
+        }
+      ],
+      "productID" : "credit_1000",
+      "referenceName" : "1000 Kredi Paketi",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "69A1A26F",
+      "localizations" : [
+        {
+          "description" : "Soru sormak ve anketler için 10000 kredi.",
+          "displayName" : "10000 Kredi",
+          "locale" : "tr"
+        }
+      ],
+      "productID" : "credit_10000",
+      "referenceName" : "10000 Kredi Paketi",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "C6C4E191",
+      "localizations" : [
+        {
+          "description" : "Soru sormak ve anketler için 250 kredi.",
+          "displayName" : "250 Kredi",
+          "locale" : "tr"
+        }
+      ],
+      "productID" : "credit_250",
+      "referenceName" : "250 Kredi Paketi",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "E0784F37",
+      "localizations" : [
+        {
+          "description" : "Soru sormak ve anketler için 500 kredi.",
+          "displayName" : "500 Kredi",
+          "locale" : "tr"
+        }
+      ],
+      "productID" : "credit_500",
+      "referenceName" : "500 Kredi Paketi",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "DA45BB86",
+      "localizations" : [
+        {
+          "description" : "Soru sormak ve anketler için 5000 kredi.",
+          "displayName" : "5000 Kredi",
+          "locale" : "tr"
+        }
+      ],
+      "productID" : "mg_credit_5000",
+      "referenceName" : "5000 Kredi Paketi",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 5,
+    "minor" : 0
+  }
+}
