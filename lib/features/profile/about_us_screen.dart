@@ -40,17 +40,76 @@ class AboutUsScreen extends ConsumerWidget {
             return Center(child: Text('about_error_content'.tr()));
           }
 
-          return Markdown(
-            data: content,
-            selectable: true,
-            styleSheet: MarkdownStyleSheet(
-              p: const TextStyle(fontSize: 15, height: 1.6, color: Colors.black87),
-              h1: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy, height: 2),
-              h2: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy, height: 2),
-              listBullet: const TextStyle(fontSize: 15, height: 1.6),
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Markdown(
+                  data: content,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  selectable: true,
+                  styleSheet: MarkdownStyleSheet(
+                    p: const TextStyle(fontSize: 15, height: 1.6, color: Colors.black87),
+                    h1: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy, height: 2),
+                    h2: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy, height: 2),
+                    listBullet: const TextStyle(fontSize: 15, height: 1.6),
+                  ),
+                ),
+                const _FinancialDisclaimerCard(),
+                const SizedBox(height: 32),
+              ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _FinancialDisclaimerCard extends StatelessWidget {
+  const _FinancialDisclaimerCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFFE082), width: 1.5),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.gavel_rounded, color: Color(0xFFF57F17), size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Yasal Uyarı',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Color(0xFFF57F17),
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'MaliGörüş, kullanıcıların finansal deneyimlerini paylaştığı bir sosyal platformdur. Uygulama içindeki hiçbir içerik yatırım tavsiyesi, finansal danışmanlık veya resmi öneri niteliği taşımaz. Finansal kararlarınız için lisanslı bir mali müşavire başvurmanızı öneririz.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF5D4037),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

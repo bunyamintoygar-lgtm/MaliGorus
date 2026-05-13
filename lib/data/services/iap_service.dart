@@ -17,7 +17,6 @@ class IapService extends AsyncNotifier<List<ProductDetails>> {
     'credit_250',
     'credit_500',
     'credit_1000',
-    'credit_5000',
     'mg_credit_5000',
     'credit_10000',
   };
