@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaliGörüş - Gizlilik Politikası</title>
+    <meta name="description" content="MaliGörüş uygulaması için gizlilik politikası ve veri güvenliği bilgilendirme sayfası.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0b111e;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.06);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --action-blue: #2680eb;
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            width: 100%;
+        }
+
+        /* Navbar */
+        .navbar {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(11, 17, 30, 0.8);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .logo img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .btn-home {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-home:hover {
+            color: var(--text-main);
+        }
+
+        /* Content Section */
+        .policy-content {
+            padding: 5rem 0 6rem;
+        }
+
+        .policy-content h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+        }
+
+        .policy-content h1 span {
+            color: var(--action-blue);
+        }
+
+        .update-date {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 3rem;
+            display: block;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .policy-section h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .policy-section h2 i {
+            color: var(--action-blue);
+            width: 24px;
+            height: 24px;
+        }
+
+        .policy-section p, .policy-section ul {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            padding-left: 2rem;
+        }
+
+        .policy-section ul {
+            list-style-type: disc;
+            margin-top: 0.5rem;
+        }
+
+        .policy-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .policy-content h1 {
+                font-size: 2rem;
+            }
+            .glass-card {
+                padding: 1.5rem;
+            }
+            .policy-section p, .policy-section ul {
+                padding-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <img src="../../assets/logo/logo.png" alt="MaliGörüş Logo">
+                <span>MaliGörüş</span>
+            </a>
+            <a href="../index.html" class="btn-home">
+                <i data-lucide="arrow-left"></i> Anasayfaya Dön
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="policy-content">
+            <h1>Gizlilik <span>Politikası</span></h1>
+            <span class="update-date">Son Güncelleme: 2 Mayıs 2026</span>
+
+            <div class="glass-card">
+                <!-- Bölüm 1 -->
+                <div class="policy-section">
+                    <h2><i data-lucide="shield"></i> 1. Veri Güvenliği ve Kapsam</h2>
+                    <p>MaliGörüş olarak, kullanıcılarımızın kişisel verilerinin gizliliğine ve güvenliğine büyük önem veriyoruz. Bu gizlilik politikası, uygulamamızı kullanırken hangi verilerin toplandığını ve bu verilerin nasıl kullanıldığını açıklar.</p>
+                </div>
+
+                <!-- Bölüm 2 -->
+                <div class="policy-section">
+                    <h2><i data-lucide="database"></i> 2. Toplanan Veriler</h2>
+                    <p>Uygulamamıza kayıt olurken ve kullanırken aşağıdaki bilgiler toplanmaktadır:</p>
+                    <ul>
+                        <li><strong>Kişisel Bilgiler:</strong> Adınız, soyadınız, e-posta adresiniz ve mesleki unvanınız.</li>
+                        <li><strong>Hesap Bilgileri:</strong> Güvenli giriş yapabilmeniz için oluşturduğunuz kullanıcı kimliği (User ID).</li>
+                    </ul>
+                </div>
+
+                <!-- Bölüm 3 -->
+                <div class="policy-section">
+                    <h2><i data-lucide="activity"></i> 3. Verilerin Kullanım Amacı</h2>
+                    <p>Toplanan veriler yalnızca aşağıdaki amaçlar doğrultusunda kullanılmaktadır:</p>
+                    <ul>
+                        <li>Kullanıcı hesabı oluşturmak ve güvenli giriş sağlamak.</li>
+                        <li>Uygulama içi işlevleri ve kullanıcı deneyimini iyileştirmek.</li>
+                        <li>Mesleki onay ve doğrulama süreçlerini yönetmek.</li>
+                    </ul>
+                </div>
+
+                <!-- Bölüm 4 -->
+                <div class="policy-section">
+                    <h2><i data-lucide="lock"></i> 4. Veri Paylaşımı</h2>
+                    <p>Kişisel verileriniz hiçbir şekilde üçüncü şahıslarla reklam, pazarlama veya takip amacıyla paylaşılmaz. Tüm verileriniz güvenli sunucularda şifrelenmiş olarak saklanır.</p>
+                </div>
+
+                <!-- Bölüm 5 -->
+                <div class="policy-section">
+                    <h2><i data-lucide="trash-2"></i> 5. Kullanıcı Hakları ve Veri Silme</h2>
+                    <p>Kullanıcılarımız diledikleri zaman hesaplarını ve toplanan tüm verilerini uygulama içerisindeki ayarlardan veya <strong>destek@maligorus.com</strong> adresine e-posta göndererek kalıcı olarak silebilirler.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 MaliGörüş. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

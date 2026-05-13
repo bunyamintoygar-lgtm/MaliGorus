@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaliGörüş - Destek ve İletişim</title>
+    <meta name="description"
+        content="MaliGörüş uygulaması için her türlü destek ve iletişim taleplerinizi buradan bize iletebilirsiniz.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0b111e;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.06);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --action-blue: #2680eb;
+            --action-blue-hover: #1e6cd4;
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            width: 100%;
+        }
+
+        /* Navbar */
+        .navbar {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(11, 17, 30, 0.8);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .logo img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .btn-home {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-home:hover {
+            color: var(--text-main);
+        }
+
+        /* Hero Section */
+        .support-hero {
+            padding: 5rem 0 3rem;
+            text-align: center;
+        }
+
+        .support-hero h1 {
+            font-size: 2.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+        }
+
+        .support-hero h1 span {
+            color: var(--action-blue);
+        }
+
+        .support-hero p {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        /* Support Cards */
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 6rem;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(38, 128, 235, 0.3);
+            background: var(--glass-hover);
+            transform: translateY(-4px);
+        }
+
+        .support-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .support-card i {
+            color: var(--action-blue);
+            width: 44px;
+            height: 44px;
+        }
+
+        .support-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .support-card p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .support-card a {
+            text-decoration: none;
+            color: var(--action-blue);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s ease;
+            margin-top: auto;
+        }
+
+        .support-card a:hover {
+            color: var(--action-blue-hover);
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .support-hero h1 {
+                font-size: 2.25rem;
+            }
+
+            .support-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <img src="/logo.png" alt="MaliGörüş Logo">
+                <span>MaliGörüş</span>
+            </a>
+            <a href="../index.html" class="btn-home">
+                <i data-lucide="arrow-left"></i> Anasayfaya Dön
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="support-hero">
+            <h1>MaliGörüş <span>Destek Merkezi</span></h1>
+            <p>Uygulamamız ile ilgili sorularınız, teknik destek talepleriniz ve mesleki iş birlikleri için bizimle
+                iletişime geçebilirsiniz.</p>
+        </section>
+
+        <section class="support-grid">
+            <!-- 1. İletişim Kartı -->
+            <div class="glass-card support-card">
+                <i data-lucide="mail"></i>
+                <h3>E-Posta Destek</h3>
+                <p>Her türlü soru, teknik problem ve üyelik doğrulama taleplerinizi bize e-posta yoluyla
+                    iletebilirsiniz. Ekibimiz en kısa sürede dönüş sağlayacaktır.</p>
+                <a href="mailto:destek@maligorus.com">
+                    destek@maligorus.com <i data-lucide="external-link"></i>
+                </a>
+            </div>
+
+            <!-- 2. İletişim Kartı -->
+            <div class="glass-card support-card">
+                <i data-lucide="message-square"></i>
+                <h3>Hızlı İletişim & Sosyal Medya</h3>
+                <p>Mesleki ağımızdaki güncellemeleri takip etmek ve doğrudan ekibimizle hızlıca mesajlaşmak için bizi
+                    sosyal kanallarımızdan takip edin.</p>
+                <a href="https://maligorus.com" target="_blank">
+                    maligorus.com <i data-lucide="external-link"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 MaliGörüş. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "16407850029",
+    "project_id": "maligorus-d3c43",
+    "storage_bucket": "maligorus-d3c43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:16407850029:android:8d5ee74d5ef10a1ef29ca4",
+        "android_client_info": {
+          "package_name": "com.maligorus.maligorus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzjNsgCfR18AqJymnbv1VyG6nI4ndRn8c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
