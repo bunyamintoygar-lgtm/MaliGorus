@@ -21,77 +21,10 @@ serve(async (req) => {
 
     const randomBot = bots[Math.floor(Math.random() * bots.length)]
 
-    // 2. Aksiyon tipi seçimi (Cevap yazma, Beğenme veya Anket Oylama)
-    // %70 Cevap, %15 Beğeni, %15 Anket Oylama (Cevap yazmaya öncelik veriyoruz)
-    const actionRandomVal = Math.random()
-    let actionType = 'reply'
-    if (actionRandomVal < 0.7) {
-      actionType = 'reply'
-    } else if (actionRandomVal < 0.85) {
-      actionType = 'like'
-    } else {
-      actionType = 'vote'
-    }
+    const results: any[] = []
 
-    // 3. Aksiyonu gerçekleştir
-    if (actionType === 'vote') {
-      // Aktif ve süresi dolmamış anketleri getir
-      const { data: activeSurveys, error: surveyError } = await supabase
-        .from('surveys')
-        .select('id, title, options')
-        .eq('status', 'active')
-        .gt('expires_at', new Date().toISOString())
-        .limit(10)
-
-      if (surveyError || !activeSurveys || activeSurveys.length === 0) {
-        // Aktif anket yoksa like veya reply aksiyonuna yönlendir
-        actionType = Math.random() < 0.6 ? 'reply' : 'like'
-      } else {
-        // Rastgele bir anket seç
-        const targetSurvey = activeSurveys[Math.floor(Math.random() * activeSurveys.length)]
-        
-        // Eğer options dizisi varsa rastgele bir seçeneğe oy ver
-        if (targetSurvey.options && targetSurvey.options.length > 0) {
-          const targetOption = targetSurvey.options[Math.floor(Math.random() * targetSurvey.options.length)]
-
-          // 1. Oy kaydını ekle
-          const { error: insertVoteError } = await supabase
-            .from('survey_votes')
-            .insert({
-              survey_id: targetSurvey.id,
-              user_id: randomBot.id,
-              option_id: targetOption.id
-            })
-
-          if (insertVoteError) {
-            // Zaten oy vermiş olabilir (unique constraint), beğeni aksiyonuna yönlendiriyoruz
-            console.log(`Bot ${randomBot.id} zaten anket ${targetSurvey.id} için oy kullanmış. Beğeni aksiyonuna geçiliyor...`)
-            actionType = 'like'
-          } else {
-            // 2. Mevcut seçenekleri al ve güncelle
-            const newOptions = (targetSurvey.options || []).map((opt: any) => {
-              if (opt.id === targetOption.id) {
-                return { ...opt, votes: (opt.votes || 0) + 1 }
-              }
-              return opt
-            })
-
-            const { error: updateError } = await supabase
-              .from('surveys')
-              .update({ options: newOptions })
-              .eq('id', targetSurvey.id)
-
-            if (updateError) throw updateError
-            console.log(`Bot ${randomBot.id} anket oyladı: ${targetSurvey.title} -> ${targetOption.text}`)
-            return new Response(JSON.stringify({ success: true, action: 'vote' }), { status: 200 })
-          }
-        } else {
-          actionType = 'like'
-        }
-      }
-    }
-
-    if (actionType === 'reply') {
+    // --- 1. CEVAP YAZMA AKIŞI (REPLY) ---
+    try {
       // Rastgele aktif bir tartışma seç (Son 7 gün içinde açılmış)
       const { data: discussions, error: discError } = await supabase
         .from('discussions')
@@ -101,70 +34,65 @@ serve(async (req) => {
         .limit(20)
 
       if (discError || !discussions || discussions.length === 0) {
-        throw new Error('Cevaplanacak tartışma bulunamadı.')
-      }
-
-      // Botun daha önce cevap yazdığı tartışma ID'lerini çek
-      const { data: alreadyReplied } = await supabase
-        .from('discussion_replies')
-        .select('discussion_id')
-        .eq('author_id', randomBot.id)
-
-      const excludedDiscussionIds = (alreadyReplied || []).map((r: any) => r.discussion_id)
-
-      // Botun kendi açmadığı ve daha önce cevap vermediği bir tartışmayı seçmeye çalış
-      let targetDiscussion = discussions.find(d => 
-        d.author_id !== randomBot.id && 
-        !excludedDiscussionIds.includes(d.id)
-      )
-
-      if (!targetDiscussion) {
-        // Eğer uygun tartışma bulamazsa, sadece daha önce cevaplamadığı tartışmayı seç
-        targetDiscussion = discussions.find(d => !excludedDiscussionIds.includes(d.id))
-      }
-
-      if (!targetDiscussion) {
-        // Hâlâ uygun tartışma yoksa (hepsini cevaplamışsa), beğeni aksiyonuna geçiş yapalım
-        console.log(`Bot ${randomBot.id} için yeni cevaplanacak tartışma kalmadı. Beğeni aksiyonuna yönlendiriliyor...`)
-        actionType = 'like'
+        console.log('Cevaplanacak tartışma bulunamadı veya hata oluştu.')
       } else {
-        // Tartışmaya yazılmış mevcut cevapları çek (Son 5 cevap)
-        const { data: existingReplies } = await supabase
+        // Botun daha önce cevap yazdığı tartışma ID'lerini çek
+        const { data: alreadyReplied } = await supabase
           .from('discussion_replies')
-          .select('body, profiles(full_name, profession)')
-          .eq('discussion_id', targetDiscussion.id)
-          .order('created_at', { ascending: true })
-          .limit(5)
+          .select('discussion_id')
+          .eq('author_id', randomBot.id)
 
-        let existingRepliesStr = "Henüz hiç cevap yazılmamış."
-        if (existingReplies && existingReplies.length > 0) {
-          existingRepliesStr = existingReplies.map((r: any) => {
-            const authorInfo = r.profiles ? `${r.profiles.full_name} (${r.profiles.profession})` : "Bir Meslektaş"
-            return `${authorInfo}: ${r.body}`
-          }).join("\n---\n")
+        const excludedDiscussionIds = (alreadyReplied || []).map((r: any) => r.discussion_id)
+
+        // Botun kendi açmadığı ve daha önce cevap vermediği bir tartışmayı seçmeye çalış
+        let targetDiscussion = discussions.find(d => 
+          d.author_id !== randomBot.id && 
+          !excludedDiscussionIds.includes(d.id)
+        )
+
+        if (!targetDiscussion) {
+          // Eğer uygun tartışma bulamazsa, sadece daha önce cevaplamadığı tartışmayı seç
+          targetDiscussion = discussions.find(d => !excludedDiscussionIds.includes(d.id))
         }
 
-        // Deneyim Seviyesi Belirleme (Çeşitlilik İçin)
-        const expRandom = Math.random()
-        let experienceLevel = '10-15 yıllık kıdemli, çok tecrübeli ve profesyonel bir'
-        if (expRandom < 0.2) {
-          experienceLevel = 'mesleğe henüz 1-2 yıl önce başlamış, tecrübesiz ama öğrenmeye hevesli genç bir'
-        } else if (expRandom < 0.5) {
-          experienceLevel = '4-5 yıllık orta düzey deneyimli bir'
-        }
+        if (targetDiscussion) {
+          // Tartışmaya yazılmış mevcut cevapları çek (Son 5 cevap)
+          const { data: existingReplies } = await supabase
+            .from('discussion_replies')
+            .select('body, profiles(full_name, profession)')
+            .eq('discussion_id', targetDiscussion.id)
+            .order('created_at', { ascending: true })
+            .limit(5)
 
-        // Rastgele paragraf sayısı ve uzunluk belirleme (Tek düze yapay zeka şablonunu kırmak için)
-        const lengthRandom = Math.random()
-        let paragraphConstraint = ''
-        if (lengthRandom < 0.3) {
-          paragraphConstraint = 'sadece 1 ya da en fazla 2 kısa cümleden oluşan, son derece pratik, doğrudan ve net bir görüş veya kişisel tecrübe olsun (örn: "Biz geçen yıl benzer bir durumda interaktif yerine elden dilekçe vererek çözmüştük, sistem bazen hata veriyor").'
-        } else if (lengthRandom < 0.7) {
-          paragraphConstraint = 'sadece tek (1) kısa/orta paragraftan oluşsun. Hızlıca, doğrudan konuya odaklı bir görüş veya pratik bir çözüm belirt.'
-        } else {
-          paragraphConstraint = '1 ya da en fazla 2 paragraftan oluşsun, konuyu hafifçe detaylandıran orta uzunlukta bir cevap olsun.'
-        }
+          let existingRepliesStr = "Henüz hiç cevap yazılmamış."
+          if (existingReplies && existingReplies.length > 0) {
+            existingRepliesStr = existingReplies.map((r: any) => {
+              const authorInfo = r.profiles ? `${r.profiles.full_name} (${r.profiles.profession})` : "Bir Meslektaş"
+              return `${authorInfo}: ${r.body}`
+            }).join("\n---\n")
+          }
 
-        const prompt = `Sen ${experienceLevel} Türk ${randomBot.profession || 'Muhasebe Uzmanı'}sın. Aşağıda başka bir meslektaşının açtığı bir tartışma veya danışma konusu var. Ayrıca bu konuya şimdiye kadar yazılmış diğer cevaplar/yorumlar da aşağıda listelenmiştir.
+          // Deneyim Seviyesi Belirleme (Çeşitlilik İçin)
+          const expRandom = Math.random()
+          let experienceLevel = '10-15 yıllık kıdemli, çok tecrübeli ve profesyonel bir'
+          if (expRandom < 0.2) {
+            experienceLevel = 'mesleğe henüz 1-2 yıl önce başlamış, tecrübesiz ama öğrenmeye hevesli genç bir'
+          } else if (expRandom < 0.5) {
+            experienceLevel = '4-5 yıllık orta düzey deneyimli bir'
+          }
+
+          // Rastgele paragraf sayısı ve uzunluk belirleme (Tek düze yapay zeka şablonunu kırmak için)
+          const lengthRandom = Math.random()
+          let paragraphConstraint = ''
+          if (lengthRandom < 0.3) {
+            paragraphConstraint = 'sadece 1 ya da en fazla 2 kısa cümleden oluşan, son derece pratik, doğrudan ve net bir görüş veya kişisel tecrübe olsun (örn: "Biz geçen yıl benzer bir durumda interaktif yerine elden dilekçe vererek çözmüştük, sistem bazen hata veriyor").'
+          } else if (lengthRandom < 0.7) {
+            paragraphConstraint = 'sadece tek (1) kısa/orta paragraftan oluşsun. Hızlıca, doğrudan konuya odaklı bir görüş veya pratik bir çözüm belirt.'
+          } else {
+            paragraphConstraint = '1 ya da en fazla 2 paragraftan oluşsun, konuyu hafifçe detaylandıran orta uzunlukta bir cevap olsun.'
+          }
+
+          const prompt = `Sen ${experienceLevel} Türk ${randomBot.profession || 'Muhasebe Uzmanı'}sın. Aşağıda başka bir meslektaşının açtığı bir tartışma veya danışma konusu var. Ayrıca bu konuya şimdiye kadar yazılmış diğer cevaplar/yorumlar da aşağıda listelenmiştir.
 Bunları dikkatlice oku, gerekirse diğer meslektaşlarının fikirlerine atıfta bulun, onlara katıl/katılma veya kendi çözümünü sunarak doğal, samimi, destekleyici veya ufuk açıcı bir cevap yaz.
 
 Kurallar:
@@ -182,47 +110,60 @@ Konu İçeriği: "${targetDiscussion.body}"
 Şimdiye Kadar Yazılan Diğer Cevaplar/Yorumlar:
 ${existingRepliesStr}`
 
-        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${OPENAI_API_KEY}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "gpt-5.4-mini",
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.8,
-          })
-        })
-
-        const data = await openaiResponse.json()
-        const replyContent = data.choices[0].message.content.trim()
-
-        const { error: insertError } = await supabase
-          .from('discussion_replies')
-          .insert({
-            discussion_id: targetDiscussion.id,
-            author_id: randomBot.id,
-            body: replyContent
+          const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${OPENAI_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "gpt-5.4-mini",
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.8,
+            })
           })
 
-        if (insertError) throw insertError
+          const data = await openaiResponse.json()
+          const replyContent = data.choices[0].message.content.trim()
 
-        // Ayrıca konunun izlenme sayısını artıralım (Ziyaret edildiği için)
-        await supabase.rpc('increment_discussion_view_count', { p_discussion_id: targetDiscussion.id })
+          const { error: insertError } = await supabase
+            .from('discussion_replies')
+            .insert({
+              discussion_id: targetDiscussion.id,
+              author_id: randomBot.id,
+              body: replyContent
+            })
 
-        console.log(`Cevap eklendi: Discussion ${targetDiscussion.id}`)
-        return new Response(JSON.stringify({ success: true, action: 'reply' }), { status: 200 })
+          if (insertError) throw insertError
+
+          // Ayrıca konunun izlenme sayısını artıralım (Ziyaret edildiği için)
+          await supabase.rpc('increment_discussion_view_count', { p_discussion_id: targetDiscussion.id })
+
+          console.log(`Cevap eklendi: Discussion ${targetDiscussion.id}`)
+          results.push({ action: 'reply', success: true, discussion_id: targetDiscussion.id })
+        }
       }
+    } catch (e) {
+      console.error('Cevap yazma simülasyonu hatası:', e)
+      results.push({ action: 'reply', success: false, error: e.message })
     }
 
-    if (actionType === 'like') {
-      // LIKE ACTIONS
+    // --- 2. BEĞENİ AKIŞI (LIKE) ---
+    try {
       // Sadece verilen cevapları beğen
-      const { data: replies } = await supabase.from('discussion_replies').select('id, discussion_id').order('created_at', { ascending: false }).limit(30)
+      const { data: replies } = await supabase
+        .from('discussion_replies')
+        .select('id, discussion_id')
+        .order('created_at', { ascending: false })
+        .limit(30)
+
       if (replies && replies.length > 0) {
         const target = replies[Math.floor(Math.random() * replies.length)]
-        await supabase.from('reply_likes').upsert({ reply_id: target.id, user_id: randomBot.id })
+        const { error: likeError } = await supabase
+          .from('reply_likes')
+          .upsert({ reply_id: target.id, user_id: randomBot.id })
+
+        if (likeError) throw likeError
         
         // Cevap beğenildiğinde, bağlı olduğu ana tartışmanın izlenme sayısını da artıralım (Ziyaret edildiği için)
         if (target.discussion_id) {
@@ -230,11 +171,64 @@ ${existingRepliesStr}`
         }
 
         console.log(`Cevap beğenildi: ${target.id}`)
-        return new Response(JSON.stringify({ success: true, action: 'like' }), { status: 200 })
+        results.push({ action: 'like', success: true, reply_id: target.id })
+      }
+    } catch (e) {
+      console.error('Beğeni simülasyonu hatası:', e)
+      results.push({ action: 'like', success: false, error: e.message })
+    }
+
+    // --- 3. ANKET OYLAMA AKIŞI (VOTE) ---
+    // %30 ihtimalle aktif anket varsa ona da oy versin
+    if (Math.random() < 0.3) {
+      try {
+        const { data: activeSurveys, error: surveyError } = await supabase
+          .from('surveys')
+          .select('id, title, options')
+          .eq('status', 'active')
+          .gt('expires_at', new Date().toISOString())
+          .limit(10)
+
+        if (!surveyError && activeSurveys && activeSurveys.length > 0) {
+          const targetSurvey = activeSurveys[Math.floor(Math.random() * activeSurveys.length)]
+          
+          if (targetSurvey.options && targetSurvey.options.length > 0) {
+            const targetOption = targetSurvey.options[Math.floor(Math.random() * targetSurvey.options.length)]
+
+            const { error: insertVoteError } = await supabase
+              .from('survey_votes')
+              .insert({
+                survey_id: targetSurvey.id,
+                user_id: randomBot.id,
+                option_id: targetOption.id
+              })
+
+            if (!insertVoteError) {
+              const newOptions = (targetSurvey.options || []).map((opt: any) => {
+                if (opt.id === targetOption.id) {
+                  return { ...opt, votes: (opt.votes || 0) + 1 }
+                }
+                return opt
+              })
+
+              const { error: updateError } = await supabase
+                .from('surveys')
+                .update({ options: newOptions })
+                .eq('id', targetSurvey.id)
+
+              if (updateError) throw updateError
+              console.log(`Bot ${randomBot.id} anket oyladı: ${targetSurvey.title} -> ${targetOption.text}`)
+              results.push({ action: 'vote', success: true, survey_id: targetSurvey.id })
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Anket oylama simülasyonu hatası:', e)
+        results.push({ action: 'vote', success: false, error: e.message })
       }
     }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 })
+    return new Response(JSON.stringify({ success: true, results }), { status: 200 })
   } catch (error) {
     console.error('Simülasyon hatası:', error)
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })

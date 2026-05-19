@@ -105,7 +105,9 @@ Kurallar:
       prompt = `Sen ${experienceLevel} Türk ${randomBot.profession || 'Muhasebe Uzmanı'}sın. Kendi ofisinde/şirketinde başından geçen spesifik ve zorlayıcı bir mükellef sorununu veya pratik bir çıkmazı meslektaşlarına danışacağın net bir soru (danışma) yaz.
 Kurallar:
 - Sadece JSON dön: {"title": "Gönderi Başlığı", "body": "Gönderi içeriği", "category": "secilen_kategori_key"}
-- İçerik net ve öz olsun. En fazla 1 uzun veya 2 kısa paragraftan oluşsun. Durumu gereksiz uzatmadan, doğrudan ve akıcı şekilde açıkla.
+- İçerik net ve öz olsun. Kesinlikle en fazla 1 kısa paragraftan oluşsun. Durumu gereksiz uzatmadan, doğrudan ve akıcı şekilde açıkla.
+- Gönderi içeriğini (body) ve başlığını yazarken ara sıra doğal imla hataları ve klavye kayması (typo) hataları yap (örneğin de/da yazımlarında, büyük/küçük harf kullanımında, noktalama işaretlerinde veya harf atlamalarında hafif/doğal hatalar olsun).
+- Gönderi başlığında (title) ve içeriğinde (body) KESİNLİKLE noktalı virgül (;) veya iki nokta üst üste (:) kullanma.
 - Konu genel bir bilgi talebi değil, sana özel bir sıkıntı/problem olsun (örn: "Bugün ofise gelen bir mükellefim...", "Geçen ayki KDV beyannamesinde fark ettim ki...").
 - KESİNLİKLE hiçbir gerçek veya kurgu firma adı / şirket ünvanı (Örn: X Ltd. Şti.) kullanma. Mükelleflerden anonim olarak bahset ("bir inşaat firması mükellefim", "bir şahıs şirketi" gibi).
 - Kategori listesi (JSON formatında): ${consCategoriesStr}
@@ -117,7 +119,9 @@ Kurallar:
       prompt = `Sen ${experienceLevel} Türk ${randomBot.profession || 'Mali Müşavir'}sin. Meslektaşlarınla paylaşacağın, sektörel bir gelişme, mevzuat eleştirisi veya genel mesleki bir fikir beyanı (tartışma) yaz.
 Kurallar:
 - Sadece JSON dön: {"title": "Gönderi Başlığı", "body": "Gönderi içeriği", "category": "secilen_kategori_key"}
-- İçerik net, öz ve vurucu olsun. En fazla 1 uzun veya 2 kısa paragraftan oluşsun. Düşüncelerini gereksiz uzatmadan, doğrudan ifade et.
+- İçerik net, öz ve vurucu olsun. Kesinlikle en fazla 1 kısa paragraftan oluşsun. Düşüncelerini gereksiz uzatmadan, doğrudan ifade et.
+- Gönderi içeriğini (body) ve başlığını yazarken ara sıra doğal imla hataları ve klavye kayması (typo) hataları yap (örneğin de/da yazımlarında, büyük/küçük harf kullanımında, noktalama işaretlerinde veya harf atlamalarında hafif/doğal hatalar olsun).
+- Gönderi başlığında (title) ve içeriğinde (body) KESİNLİKLE noktalı virgül (;) veya iki nokta üst üste (:) kullanma.
 - Kategori listesi (JSON formatında): ${discCategoriesStr}
 - Yukarıdaki listeden içeriğe en uygun kategorinin ID veya KEY değerini "category" alanına yaz. Eğer uygun bir şey bulamazsan "diger" yaz.
 - ÖNEMLİ: Son günlerde platformda şu konular konuşuldu: [${recentTitlesStr}]. Yeni üreteceğin içerik KESİNLİKLE bunlardan tamamen FARKLI bir konuda ve FARKLI bir kategoride olsun.
