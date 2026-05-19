@@ -62,6 +62,63 @@ class MaliGorusApp extends ConsumerWidget {
     });
 
     return MaterialApp.router(
+      builder: (context, child) {
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: Stack(
+            children: [
+              child!,
+              Builder(
+                builder: (ctx) {
+                  final viewInsets = MediaQuery.of(ctx).viewInsets;
+                  final isKeyboardVisible = viewInsets.bottom > 0;
+                  if (!isKeyboardVisible) return const SizedBox.shrink();
+                  return Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: viewInsets.bottom,
+                    child: Material(
+                      color: const Color(0xFFF5F5F7),
+                      elevation: 1,
+                      child: Container(
+                        height: 42,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: Color(0xFFD1D1D6), width: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                'common_close'.tr(),
+                                style: const TextStyle(
+                                  color: Color(0xFF007AFF),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
       title: 'MaliGörüş',
       debugShowCheckedModeBanner: false,
       localizationsDelegates: context.localizationDelegates,
