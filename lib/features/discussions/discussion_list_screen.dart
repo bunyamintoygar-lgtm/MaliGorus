@@ -32,6 +32,7 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
   String _selectedCategory = 'hepsi';
   String _status = 'tumu';
   Timer? _debounce;
+  bool _isSearching = false;
 
   // FAB State
   bool _isFabExtended = false;
@@ -147,26 +148,75 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
   @override
   Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider).value;
+    final profile = homeState?.profile;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          UnifiedHeader(profile: homeState?.profile),
-          _buildTitleSection(),
-          _buildSearchAndFilter(),
-          const SizedBox(height: 16),
-          _buildCategoryFilter(),
-          const SizedBox(height: 8),
-          // Liste
-          Expanded(
-            child: _isLoading 
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(child: Text('error_loading'.tr(args: [_error!])))
-                    : _buildList(),
-          ),
-        ],
+      body: RefreshIndicator(
+        onRefresh: _loadInitialData,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverUnifiedHeader(profile: profile),
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTitleSection(),
+                  if (_isSearching) ...[
+                    _buildSearchAndFilter(),
+                    const SizedBox(height: 16),
+                  ],
+                  _buildCategoryFilter(),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+            if (_isLoading)
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              SliverFillRemaining(
+                child: Center(child: Text('error_loading'.tr(args: [_error!]))),
+              )
+            else if (_discussions.isEmpty)
+              SliverFillRemaining(
+                child: _buildEmptyState(),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index >= _discussions.length) {
+                        if (_hasMore && !_isLoadingMore) {
+                          Future.microtask(() => _loadMore());
+                        }
+                        return _isLoadingMore 
+                            ? const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Center(child: CircularProgressIndicator()),
+                              ) 
+                            : const SizedBox(height: 80);
+                      }
+                      
+                      final discussion = _discussions[index];
+                      return _buildDiscussionCard(
+                        context, 
+                        discussion, 
+                        key: ValueKey(discussion.id),
+                      );
+                    },
+                    childCount: _discussions.length + (_hasMore ? 1 : 0),
+                  ),
+                ),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
       ),
     );
   }
@@ -193,17 +243,39 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
               ],
             ),
           ),
-          ElevatedButton.icon(
-            onPressed: _createNewDiscussion,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.actionBlue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            icon: const Icon(Icons.edit_note_rounded, size: 22),
-            label: Text('discussions_start_discussion'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  _isSearching ? Icons.close_rounded : Icons.search_rounded,
+                  color: AppTheme.actionBlue,
+                  size: 24,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isSearching = !_isSearching;
+                    if (!_isSearching) {
+                      _searchController.clear();
+                      _searchQuery = '';
+                      _loadInitialData();
+                    }
+                  });
+                },
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: _createNewDiscussion,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.actionBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.edit_note_rounded, size: 22),
+                label: Text('discussions_start_discussion'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
         ],
       ),
@@ -344,7 +416,7 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
         );
       },
     );
@@ -364,55 +436,18 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
     }
   }
 
-  Widget _buildList() {
-    if (_discussions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey[200]),
-            const SizedBox(height: 16),
-            Text(
-              'discussions_empty'.tr(args: ['discussions'.tr()]),
-              style: TextStyle(color: Colors.grey[400], fontSize: 16),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadInitialData,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        cacheExtent: 2000,
-        addAutomaticKeepAlives: true,
-        addRepaintBoundaries: true,
-        itemCount: _discussions.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index >= _discussions.length - 3 && index < _discussions.length) {
-            if (_hasMore && !_isLoadingMore) {
-              Future.microtask(() => _loadMore());
-            }
-          }
-
-          if (index == _discussions.length) {
-            return SizedBox(
-              height: 100,
-              child: _isLoadingMore 
-                  ? const Center(child: CircularProgressIndicator()) 
-                  : const SizedBox.shrink(),
-            );
-          }
-
-          final discussion = _discussions[index];
-          return _buildDiscussionCard(
-            context, 
-            discussion, 
-            key: ValueKey(discussion.id),
-          );
-        },
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey[200]),
+          const SizedBox(height: 16),
+          Text(
+            'discussions_empty'.tr(args: ['discussions'.tr()]),
+            style: TextStyle(color: Colors.grey[400], fontSize: 16),
+          ),
+        ],
       ),
     );
   }
@@ -443,7 +478,7 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
                   CircleAvatar(
                     radius: 14,
                     backgroundImage: discussion.authorAvatarUrl != null ? NetworkImage(discussion.authorAvatarUrl!) : null,
-                    backgroundColor: AppTheme.primaryNavy.withOpacity(0.05),
+                    backgroundColor: AppTheme.primaryNavy.withValues(alpha: 0.05),
                     child: discussion.authorAvatarUrl == null 
                         ? Text(discussion.formattedAuthorName[0], style: TextStyle(fontSize: 10, color: AppTheme.primaryNavy))
                         : null,
@@ -540,7 +575,7 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: AppTheme.actionBlue.withOpacity(0.08),
+            color: AppTheme.actionBlue.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -573,7 +608,7 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
         itemCount: filters.length,
         itemBuilder: (context, index) {
           final filter = filters[index];
-          final isSelected = (_status ?? 'tumu') == filter['value'];
+          final isSelected = _status == filter['value'];
           
           return Padding(
             padding: const EdgeInsets.only(right: 8),

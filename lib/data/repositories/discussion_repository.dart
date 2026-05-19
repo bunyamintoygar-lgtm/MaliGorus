@@ -248,18 +248,7 @@ class DiscussionRepository {
     
     final List list = response as List;
 
-    // Danışma ise gizlilik kuralını uygula
-    final discData = await _client.from('discussions').select('type, author_id').eq('id', discussionId).single();
-    final authorId = discData['author_id'];
 
-    if (discData['type'] == 'danisma') {
-      if (authorId != userId) {
-        return list
-            .where((e) => e['author_id'] == userId || e['author_id'] == authorId)
-            .map((e) => ReplyModel.fromJson(e))
-            .toList();
-      }
-    }
 
     return list.map((e) => ReplyModel.fromJson(e)).toList();
   }
