@@ -635,66 +635,9 @@ class _CreditEarnScreenState extends ConsumerState<CreditEarnScreen> {
 
     if (profile == null) return const SizedBox.shrink();
 
-    final fallbackProducts = [
-      ProductDetails(
-        id: 'credit_100',
-        title: '100 Kredi Paketi',
-        description: 'Acil sorular ve anket oylaması için ideal başlangıç paketi.',
-        price: '₺34.99',
-        rawPrice: 34.99,
-        currencyCode: 'TRY',
-        currencySymbol: '₺',
-      ),
-      ProductDetails(
-        id: 'credit_250',
-        title: '250 Kredi Paketi',
-        description: 'Geniş kapsamlı anketler ve tartışma başlatma için ideal.',
-        price: '₺79.99',
-        rawPrice: 79.99,
-        currencyCode: 'TRY',
-        currencySymbol: '₺',
-      ),
-      ProductDetails(
-        id: 'credit_500',
-        title: '500 Kredi Paketi',
-        description: 'Uzman danışma ve detaylı analizler için en uygun paket.',
-        price: '₺149.99',
-        rawPrice: 149.99,
-        currencyCode: 'TRY',
-        currencySymbol: '₺',
-      ),
-      ProductDetails(
-        id: 'credit_1000',
-        title: '1000 Kredi Paketi',
-        description: 'Çok sayıda anket oylama ve uzman danışması için avantajlı paket.',
-        price: '₺279.99',
-        rawPrice: 279.99,
-        currencyCode: 'TRY',
-        currencySymbol: '₺',
-      ),
-      ProductDetails(
-        id: 'mg_credit_5000',
-        title: '5000 Kredi Paketi',
-        description: 'Gold üyelik seviyesine anında yükselin ve tüm avantajları açın.',
-        price: '₺1199.99',
-        rawPrice: 1199.99,
-        currencyCode: 'TRY',
-        currencySymbol: '₺',
-      ),
-      ProductDetails(
-        id: 'credit_10000',
-        title: '10000 Kredi Paketi',
-        description: 'Platinum üyelik seviyesi ve sınırsız danışmanlık fırsatları.',
-        price: '₺1999.99',
-        rawPrice: 1999.99,
-        currencyCode: 'TRY',
-        currencySymbol: '₺',
-      ),
-    ];
-
     Widget buildList(List<ProductDetails> products) {
-      final productsToShow = products.isNotEmpty ? products : fallbackProducts;
-      final sortedProducts = List<ProductDetails>.from(productsToShow)..sort((a, b) => a.rawPrice.compareTo(b.rawPrice));
+      if (products.isEmpty) return const SizedBox.shrink();
+      final sortedProducts = List<ProductDetails>.from(products)..sort((a, b) => a.rawPrice.compareTo(b.rawPrice));
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -714,7 +657,7 @@ class _CreditEarnScreenState extends ConsumerState<CreditEarnScreen> {
     return iapState.when(
       data: (products) => buildList(products),
       loading: () => const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())),
-      error: (err, stack) => buildList([]),
+      error: (err, stack) => const SizedBox.shrink(),
     );
   }
 
