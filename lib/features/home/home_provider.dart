@@ -55,10 +55,10 @@ class HomeNotifier extends AsyncNotifier<HomeState> {
     final results = await Future.wait([
       profileRepo.getMyProfile(),
       surveyRepo.getSurveys(to: 2, onlyActive: true), // Son 3 aktif anketi getir
-      discussionRepo.getDiscussions('tartisma', pageSize: 3),
+      discussionRepo.getDiscussions('tartisma', pageSize: 5),
       discussionRepo.getMyTopicReplies(limit: 10),
       chatRepo.getUnreadMessageNotifications(),
-      discussionRepo.getDiscussions('danisma', pageSize: 3),
+      discussionRepo.getDiscussions('danisma', pageSize: 5),
       listingRepo.getListings(pageSize: 3),
       _fetchLatestAnnouncements(),
     ]);
