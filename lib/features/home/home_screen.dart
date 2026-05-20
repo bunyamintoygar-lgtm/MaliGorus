@@ -126,7 +126,13 @@ class HomeScreen extends ConsumerWidget {
                       if (state.latestSurveys.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: _buildSectionHeader('home_latest_surveys'.tr(), Icons.poll_rounded, Colors.indigo),
+                          child: _buildSectionHeader(
+                            'home_latest_surveys'.tr(),
+                            Icons.poll_rounded,
+                            Colors.indigo,
+                            onSeeAll: () => ref.read(mainTabIndexProvider.notifier).setTab(3),
+                            seeAllLabel: 'Tüm Anketler',
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Padding(
@@ -147,7 +153,13 @@ class HomeScreen extends ConsumerWidget {
                       // Son Tartışmalar
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: _buildSectionHeader('home_latest_discussions'.tr(), Icons.forum_rounded, Colors.purple),
+                        child: _buildSectionHeader(
+                          'home_latest_discussions'.tr(),
+                          Icons.forum_rounded,
+                          Colors.purple,
+                          onSeeAll: () => ref.read(mainTabIndexProvider.notifier).setTab(1),
+                          seeAllLabel: 'Tüm Tartışmalar',
+                        ),
                       ),
                       const SizedBox(height: 12),
                       if (state.latestDiscussions.isEmpty)
@@ -168,7 +180,13 @@ class HomeScreen extends ConsumerWidget {
                       if (state.latestConsultations.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: _buildSectionHeader('home_latest_consultations'.tr(), Icons.psychology_alt_rounded, Colors.orange),
+                          child: _buildSectionHeader(
+                            'home_latest_consultations'.tr(),
+                            Icons.psychology_alt_rounded,
+                            Colors.orange,
+                            onSeeAll: () => ref.read(mainTabIndexProvider.notifier).setTab(2),
+                            seeAllLabel: 'Tüm Danışmalar',
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Padding(
@@ -459,7 +477,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   // ────────── SECTION HEADER ──────────
-  Widget _buildSectionHeader(String title, IconData icon, Color color, {int? badge}) {
+  Widget _buildSectionHeader(String title, IconData icon, Color color, {int? badge, VoidCallback? onSeeAll, String? seeAllLabel}) {
     return Row(
       children: [
         Container(
@@ -471,7 +489,9 @@ class HomeScreen extends ConsumerWidget {
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(width: 10),
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy)),
+        Expanded(
+          child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy)),
+        ),
         if (badge != null && badge > 0) ...[
           const SizedBox(width: 8),
           Container(
@@ -481,6 +501,23 @@ class HomeScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text('$badge', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+          ),
+        ],
+        if (onSeeAll != null) ...[
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: onSeeAll,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  seeAllLabel ?? 'Tümünü Gör',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+                ),
+                const SizedBox(width: 2),
+                Icon(Icons.arrow_forward_ios_rounded, size: 11, color: color),
+              ],
+            ),
           ),
         ],
       ],
