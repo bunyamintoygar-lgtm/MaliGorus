@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../supabase/credit_service.dart';
+import '../../features/home/home_provider.dart';
+import '../../features/profile/profile_provider.dart';
+import '../../features/credits/credit_provider.dart';
 
 final iapProvider = AsyncNotifierProvider<IapService, List<ProductDetails>>(IapService.new);
 
@@ -114,6 +117,12 @@ class IapService extends AsyncNotifier<List<ProductDetails>> {
           } else {
             await ref.read(creditServiceProvider).checkAndSetHighestLevel(user.id);
           }
+
+          // Kredi eklendikten sonra tüm ilgili sağlayıcıları (providers) sıfırla/yenile
+          ref.invalidate(homeProvider);
+          ref.invalidate(profileProvider);
+          ref.invalidate(creditStatsProvider);
+          ref.read(creditLogsProvider.notifier).loadLogs(isRefresh: true);
         }
       } catch (e) {
         debugPrint('Kredi ekleme hatası: $e');
