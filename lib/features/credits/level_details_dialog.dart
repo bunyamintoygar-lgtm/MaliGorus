@@ -265,16 +265,40 @@ class LevelDetailsDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 
-                // Abilities Grid (2 Columns)
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 5, // Genişliğe göre satır yüksekliği oranı
-                  children: _allAbilities.map((ability) {
-                    final hasAbility = currentIndex >= (ability['levelIndex'] as int);
-                    return _buildAbilityItem(ability['titleKey']!.toString().tr(), hasAbility);
-                  }).toList(),
+                // Abilities Grid (2 Columns with dynamic heights)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: _allAbilities
+                            .take((_allAbilities.length / 2).ceil())
+                            .map((ability) {
+                          final hasAbility = currentIndex >= (ability['levelIndex'] as int);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: _buildAbilityItem(ability['titleKey']!.toString().tr(), hasAbility),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: _allAbilities
+                            .skip((_allAbilities.length / 2).ceil())
+                            .map((ability) {
+                          final hasAbility = currentIndex >= (ability['levelIndex'] as int);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: _buildAbilityItem(ability['titleKey']!.toString().tr(), hasAbility),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -382,13 +406,14 @@ class LevelDetailsDialog extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       
-                      GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        childAspectRatio: 4,
+                      // List of new abilities at this level (single column)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: newAbilities.map((ability) {
-                          return _buildAbilityItem(ability['titleKey']!.toString().tr(), true);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: _buildAbilityItem(ability['titleKey']!.toString().tr(), true),
+                          );
                         }).toList(),
                       ),
                     ],
@@ -464,12 +489,12 @@ class LevelDetailsDialog extends StatelessWidget {
 
   Widget _buildAbilityItem(String title, bool hasAbility) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: 18,
           height: 18,
+          margin: const EdgeInsets.only(top: 2), // Align icon with the first line of text
           decoration: BoxDecoration(
             color: hasAbility ? Colors.green : Colors.grey[200],
             shape: BoxShape.circle,
@@ -489,7 +514,7 @@ class LevelDetailsDialog extends StatelessWidget {
               color: hasAbility ? Colors.grey[800] : Colors.grey[400],
               decoration: hasAbility ? null : TextDecoration.lineThrough,
             ),
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),

@@ -519,24 +519,66 @@ class _DiscussionDetailScreenState extends ConsumerState<DiscussionDetailScreen>
             style: TextStyle(fontSize: 14, height: 1.6, color: Colors.grey[700]),
           ),
           const SizedBox(height: 20),
-          const Divider(height: 1, color: Color(0xFFF1F3F5)),
-          const SizedBox(height: 16),
+          // İnce ve net istatistikler satırı (Stats Row)
           Row(
             children: [
-              _buildMetricItem(
-                discussion.isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined, 
-                discussion.likeCount.toString(), 
-                discussion.isLiked ? AppTheme.actionBlue : Colors.grey[600]!,
+              Icon(Icons.thumb_up_alt_outlined, size: 14, color: Colors.grey[500]),
+              const SizedBox(width: 4),
+              Text(
+                '${discussion.likeCount} Beğeni',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(width: 12),
+              Container(width: 3, height: 3, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.grey[400])),
+              const SizedBox(width: 12),
+              Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Colors.grey[500]),
+              const SizedBox(width: 4),
+              Text(
+                '${discussion.replyCount} Cevap',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(width: 12),
+              Container(width: 3, height: 3, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.grey[400])),
+              const SizedBox(width: 12),
+              Icon(Icons.visibility_outlined, size: 14, color: Colors.grey[500]),
+              const SizedBox(width: 4),
+              Text(
+                '${discussion.viewCount} Görüntüleme',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFF1F3F5)),
+          const SizedBox(height: 12),
+          // Premium Aksiyon Butonları (Action Row)
+          Row(
+            children: [
+              _buildActionButton(
+                icon: discussion.isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
+                label: discussion.isLiked ? 'Beğenildi' : 'Beğen',
+                isSelected: discussion.isLiked,
+                color: Colors.grey[700]!,
                 onTap: _handleLike,
               ),
-              const SizedBox(width: 24),
-              _buildMetricItem(Icons.chat_bubble_outline_rounded, discussion.replyCount.toString(), Colors.grey[600]!),
-              const SizedBox(width: 24),
-              _buildMetricItem(Icons.visibility_outlined, discussion.viewCount.toString(), Colors.grey[600]!),
+              const SizedBox(width: 12),
+              _buildActionButton(
+                icon: Icons.chat_bubble_outline_rounded,
+                label: 'Cevapla',
+                isSelected: false,
+                color: Colors.grey[700]!,
+                onTap: () {
+                  _focusNode.requestFocus();
+                },
+              ),
               const Spacer(),
               if (userId != discussion.authorId)
-                TextButton.icon(
-                  onPressed: () {
+                _buildActionButton(
+                  icon: Icons.report_problem_outlined,
+                  label: 'Bildir',
+                  isSelected: false,
+                  color: Colors.redAccent,
+                  onTap: () {
                     context.push('/report', extra: {
                       'reportedId': discussion.authorId,
                       'reportedTitle': discussion.title,
@@ -545,8 +587,6 @@ class _DiscussionDetailScreenState extends ConsumerState<DiscussionDetailScreen>
                       'contentBody': discussion.body,
                     });
                   },
-                  icon: const Icon(Icons.report_problem_outlined, size: 16, color: Colors.redAccent),
-                  label: const Text('Bildir', style: TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -594,6 +634,53 @@ class _DiscussionDetailScreenState extends ConsumerState<DiscussionDetailScreen>
           const SizedBox(width: 6),
           Text(value, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppTheme.actionBlue.withValues(alpha: 0.08) 
+              : Colors.grey[100]!.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected 
+                ? AppTheme.actionBlue.withValues(alpha: 0.2) 
+                : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon, 
+              size: 18, 
+              color: isSelected ? AppTheme.actionBlue : color
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? AppTheme.actionBlue : color,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

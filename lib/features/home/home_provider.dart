@@ -21,6 +21,7 @@ class HomeState {
   final List<Map<String, dynamic>> myReplies;
   final List<Map<String, dynamic>> unreadMessages;
   final List<Map<String, dynamic>> latestAnnouncements;
+  final Map<String, String> myVotes;
 
   HomeState({
     this.profile,
@@ -31,6 +32,7 @@ class HomeState {
     this.myReplies = const [],
     this.unreadMessages = const [],
     this.latestAnnouncements = const [],
+    this.myVotes = const {},
   });
 
   // Toplam bildirim sayısı (Anasayfa badge için)
@@ -61,6 +63,7 @@ class HomeNotifier extends AsyncNotifier<HomeState> {
       discussionRepo.getDiscussions('danisma', pageSize: 5),
       listingRepo.getListings(pageSize: 3),
       _fetchLatestAnnouncements(),
+      surveyRepo.getMyVotes(), // [8] Kullanıcının kendi oyları
     ]);
 
     ProfileModel? profile = results[0] as ProfileModel?;
@@ -86,6 +89,7 @@ class HomeNotifier extends AsyncNotifier<HomeState> {
       latestConsultations: results[5] as List<DiscussionModel>,
       latestListings: results[6] as List<ListingModel>,
       latestAnnouncements: results[7] as List<Map<String, dynamic>>,
+      myVotes: results[8] as Map<String, String>,
     );
   }
 

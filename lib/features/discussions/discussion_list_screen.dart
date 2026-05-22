@@ -160,17 +160,96 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
           slivers: [
             SliverUnifiedHeader(profile: profile),
             SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTitleSection(),
-                  if (_isSearching) ...[
-                    _buildSearchAndFilter(),
-                    const SizedBox(height: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTitleSection(),
+                    const SizedBox(height: 24),
+                    _buildCreateDiscussionCard(),
+                    const SizedBox(height: 32),
+                    _buildCategoriesSection(),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        if (!_isSearching)
+                          Expanded(
+                            child: Text(
+                              'Öne Çıkan Tartışmalar',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.primaryNavy,
+                              ),
+                            ),
+                          )
+                        else
+                          Expanded(
+                            child: Container(
+                              height: 44,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[50],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                autofocus: true,
+                                decoration: const InputDecoration(
+                                  hintText: 'Tartışma ara...',
+                                  border: InputBorder.none,
+                                  hintStyle: TextStyle(fontSize: 14),
+                                ),
+                                style: const TextStyle(fontSize: 14),
+                                onChanged: _onSearchChanged,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(
+                            _isSearching ? Icons.close_rounded : Icons.search_rounded,
+                            color: AppTheme.actionBlue,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isSearching = !_isSearching;
+                              if (!_isSearching) {
+                                _searchController.clear();
+                                _searchQuery = '';
+                                _loadInitialData();
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 4),
+                        PopupMenuButton<String>(
+                          icon: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.actionBlue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(Icons.filter_list_rounded, color: AppTheme.actionBlue, size: 20),
+                          ),
+                          onSelected: (value) {
+                            setState(() => _status = value);
+                            _loadInitialData();
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(value: 'benimkiler', child: Text('Sadece Bana Ait Kayıtlar')),
+                            const PopupMenuItem(value: 'tumu', child: Text('Tümü')),
+                            const PopupMenuItem(value: 'cevapladiklarim', child: Text('Cevapladıklarım')),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                   ],
-                  _buildCategoryFilter(),
-                  const SizedBox(height: 8),
-                ],
+                ),
               ),
             ),
             if (_isLoading)
@@ -187,7 +266,7 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -222,203 +301,215 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
   }
 
   Widget _buildTitleSection() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'discussions'.tr(),
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'discussions_subtitle'.tr(),
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCreateDiscussionCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[100]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.actionBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.forum_rounded, color: AppTheme.actionBlue, size: 28),
+          ),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'discussions'.tr(),
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                  'Yeni Tartışma Başlat',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: AppTheme.primaryNavy,
+                  ),
                 ),
-                const SizedBox(height: 4),
                 Text(
-                  'discussions_subtitle'.tr(),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  'Meslektaşlarınla fikir alışverişinde bulun',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
           ),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(
-                  _isSearching ? Icons.close_rounded : Icons.search_rounded,
-                  color: AppTheme.actionBlue,
-                  size: 24,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isSearching = !_isSearching;
-                    if (!_isSearching) {
-                      _searchController.clear();
-                      _searchQuery = '';
-                      _loadInitialData();
+          ElevatedButton(
+            onPressed: _createNewDiscussion,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.actionBlue,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: Text('Başlat', style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoriesSection() {
+    final configAsync = ref.watch(appConfigProvider);
+
+    return configAsync.when(
+      data: (config) {
+        final List<dynamic> rawCategories = config['discussion_categories'] ?? [];
+        if (rawCategories.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tartışma Kategorileri',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primaryNavy,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 110,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: rawCategories.length,
+                itemBuilder: (context, index) {
+                  final cat = rawCategories[index] as Map<String, dynamic>;
+                  final name = cat['label'] ?? '';
+                  final iconName = cat['icon'] ?? 'category';
+                  final catValue = cat['value']?.toString();
+                  final isSelected = _selectedCategory == catValue;
+                  
+                  // Robust and flexible category-to-icon matching based on label/value names
+                  final lowerValue = (catValue ?? '').toLowerCase();
+                  final lowerLabel = name.toLowerCase();
+
+                  IconData iconData;
+                  Color iconColor;
+
+                  if (lowerValue.contains('gelir') || lowerLabel.contains('gelir')) {
+                    iconData = Icons.calculate_rounded;
+                    iconColor = Colors.green;
+                  } else if (lowerValue.contains('kurum') || lowerLabel.contains('kurum')) {
+                    iconData = Icons.business_rounded;
+                    iconColor = Colors.blue;
+                  } else if (lowerValue.contains('kdv') || lowerValue.contains('katma') || lowerLabel.contains('kdv') || lowerLabel.contains('katma')) {
+                    iconData = Icons.percent_rounded;
+                    iconColor = Colors.redAccent;
+                  } else if (lowerValue.contains('özel') || lowerValue.contains('tüketim') || lowerValue.contains('otv') || lowerValue.contains('ötv') || lowerLabel.contains('özel') || lowerLabel.contains('tüketim') || lowerLabel.contains('ötv')) {
+                    iconData = Icons.receipt_long_rounded;
+                    iconColor = Colors.amber[700]!;
+                  } else if (lowerValue.contains('sgk') || lowerValue.contains('sosyal') || lowerValue.contains('hukuk') || lowerLabel.contains('sgk') || lowerLabel.contains('sosyal') || lowerLabel.contains('hukuk')) {
+                    iconData = Icons.groups_rounded;
+                    iconColor = Colors.teal;
+                  } else if (lowerValue.contains('muhasebe') || lowerLabel.contains('muhasebe')) {
+                    iconData = Icons.fact_check_rounded;
+                    iconColor = Colors.purple;
+                  } else if (lowerValue.contains('donem') || lowerValue.contains('dönem') || lowerLabel.contains('donem') || lowerLabel.contains('dönem')) {
+                    iconData = Icons.event_available_rounded;
+                    iconColor = Colors.indigo;
+                  } else if (lowerValue.contains('mevzuat') || lowerLabel.contains('mevzuat')) {
+                    iconData = Icons.gavel_rounded;
+                    iconColor = Colors.orange;
+                  } else {
+                    switch(iconName) {
+                      case 'percent': iconData = Icons.percent; iconColor = Colors.blue; break;
+                      case 'calculator': iconData = Icons.calculate; iconColor = Colors.green; break;
+                      case 'fact_check': iconData = Icons.fact_check; iconColor = Colors.purple; break;
+                      case 'gavel': iconData = Icons.gavel; iconColor = Colors.orange; break;
+                      case 'groups': iconData = Icons.groups; iconColor = Colors.teal; break;
+                      case 'event_available': iconData = Icons.event_available; iconColor = Colors.indigo; break;
+                      default: iconData = Icons.category_rounded; iconColor = Colors.grey;
                     }
-                  });
-                },
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: _createNewDiscussion,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.actionBlue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-                icon: const Icon(Icons.edit_note_rounded, size: 22),
-                label: Text('discussions_start_discussion'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+                  }
 
-  Widget _buildSearchAndFilter() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'discussions_search_hint'.tr(),
-                prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 22),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.grey, size: 20),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.grey[50],
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.actionBlue, width: 1.5),
-                ),
-              ),
-              onChanged: _onSearchChanged,
-            ),
-          ),
-          const SizedBox(width: 12),
-          InkWell(
-            onTap: () => _showFilterBottomSheet(context),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[200]!),
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
-              ),
-              child: Icon(Icons.tune_rounded, color: Colors.grey[600], size: 22),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFilterBottomSheet(BuildContext context) {
-    final configAsync = ref.read(appConfigProvider);
-    
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return configAsync.when(
-          data: (config) {
-            final List<dynamic> rawCategories = config['discussion_categories'] ?? [];
-            final List<Map<String, String>> categories = [
-              {'value': 'hepsi', 'label': 'discussions_all_categories'.tr()}
-            ];
-            
-            for (var item in rawCategories) {
-              if (item is Map) {
-                categories.add({
-                  'value': item['value']?.toString() ?? '',
-                  'label': item['label']?.toString() ?? '',
-                });
-              }
-            }
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'discussions_filter_by_category'.tr(),
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
-                  ),
-                  const SizedBox(height: 10),
-                  Flexible(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        final cat = categories[index];
-                        final isSelected = _selectedCategory == cat['value'];
-                        
-                        return ListTile(
-                          title: Text(
-                            cat['label']!,
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (isSelected || catValue == 'hepsi') {
+                          _selectedCategory = 'hepsi';
+                        } else {
+                          _selectedCategory = catValue ?? 'hepsi';
+                        }
+                      });
+                      _loadInitialData();
+                    },
+                    child: Container(
+                      width: 90,
+                      margin: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppTheme.actionBlue.withValues(alpha: 0.05) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected ? AppTheme.actionBlue : Colors.grey[100]!,
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: iconColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(iconData, color: iconColor, size: 22),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            name,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
                             style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.bold,
+                              fontSize: 13,
                               color: isSelected ? AppTheme.actionBlue : AppTheme.primaryNavy,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
-                          trailing: isSelected ? Icon(Icons.check_circle, color: AppTheme.actionBlue) : null,
-                          onTap: () {
-                            setState(() => _selectedCategory = cat['value']!);
-                            _loadInitialData();
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, _) => const SizedBox.shrink(),
+            ),
+          ],
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -455,7 +546,7 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
   Widget _buildDiscussionCard(BuildContext context, DiscussionModel discussion, {Key? key}) {
     return Card(
       key: key,
-      margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       color: Colors.white,
       shape: RoundedRectangleBorder(
@@ -501,10 +592,10 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
                       ],
                     ),
                   ),
-                  Text(
-                    _formatDate(discussion.lastActivityAt),
-                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                  ),
+                  if (discussion.category != null)
+                    _buildCategoryBadge(discussion.category!)
+                  else
+                    const SizedBox.shrink(),
                 ],
               ),
               const SizedBox(height: 12),
@@ -533,21 +624,21 @@ class _DiscussionListScreenState extends ConsumerState<DiscussionListScreen> {
                         color: discussion.isLiked ? AppTheme.actionBlue : Colors.grey[400]
                       ),
                       const SizedBox(width: 4),
-                      Text('${discussion.likeCount}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                      Text('${discussion.likeCount} Beğeni', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                       const SizedBox(width: 12),
                       Icon(Icons.chat_bubble_outline_rounded, size: 16, color: Colors.grey[400]),
                       const SizedBox(width: 4),
-                      Text('${discussion.replyCount}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                      Text('${discussion.replyCount} Cevap', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                       const SizedBox(width: 12),
                       Icon(Icons.visibility_outlined, size: 16, color: Colors.grey[400]),
                       const SizedBox(width: 4),
-                      Text('${discussion.viewCount}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                      Text('${discussion.viewCount} İzlenme', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                     ],
                   ),
-                  if (discussion.category != null)
-                    _buildCategoryBadge(discussion.category!)
-                  else
-                    const SizedBox.shrink(),
+                  Text(
+                    _formatDate(discussion.lastActivityAt),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  ),
                 ],
               ),
             ],

@@ -34,17 +34,27 @@ class DiscussionRepository {
     }
 
     if (status != null && status != 'tumu') {
-      if (status == 'yanitlandi') {
-        query = query.or('status.eq.closed,is_resolved.eq.true');
-      } else if (status == 'yanitlanmadi') {
-        query = query.eq('status', 'active').eq('is_resolved', false);
+      if (status == 'yanitlanmadi') {
+        // Çözüm bekleyenler için veritabanında en azından kapatılmamış olanları getirelim.
+        // Kesin filtreleme (cevap sayısına göre vb.) bellek içinde (in-memory) yapılacaktır.
+        query = query.neq('status', 'closed');
       } else if (status == 'cevapladiklarim') {
         if (userId != null) {
-          // Note: This requires a specific query or a join. 
-          // For now, we will use a filter on discussion_replies if possible, 
-          // but Supabase's PostgREST has limitations on filtering by related table count in a single go.
-          // As a workaround, we'll try to filter where discussion_replies(author_id) equals userId.
-          query = query.eq('discussion_replies.author_id', userId);
+          final repliesResponse = await _client
+              .from('discussion_replies')
+              .select('discussion_id')
+              .eq('author_id', userId);
+          final List replyList = repliesResponse as List;
+          final List<String> repliedIds = replyList
+              .map((e) => e['discussion_id']?.toString() ?? '')
+              .where((id) => id.isNotEmpty)
+              .toSet()
+              .toList();
+          
+          if (repliedIds.isEmpty) {
+            return [];
+          }
+          query = query.inFilter('id', repliedIds);
         }
       } else if (status == 'benimkiler') {
         if (userId != null) {
@@ -94,12 +104,42 @@ class DiscussionRepository {
     }
 
     final filteredList = list.where((item) {
-      if (item['status'] != 'closed') return true;
-      if (userId == null) return false;
-      if (item['author_id'] == userId) return true;
-      
-      final responders = respondersMap[item['id']];
-      return responders != null && responders.contains(userId);
+      // 1. Kapalı konuların gizlilik filtresi
+      if (item['status'] == 'closed') {
+        if (userId == null) return false;
+        if (item['author_id'] != userId) {
+          final responders = respondersMap[item['id']];
+          if (responders == null || !responders.contains(userId)) {
+            return false;
+          }
+        }
+      }
+
+      // 2. Yanıtlandı / Yanıtlanmadı filtrelerinin in-memory senkronizasyonu
+      if (status != null && status != 'tumu') {
+        int replyCount = 0;
+        if (item['reply_count'] is List) {
+          final rList = item['reply_count'] as List;
+          if (rList.isNotEmpty) {
+            replyCount = rList.first['count'] ?? 0;
+          }
+        } else if (item['reply_count'] is int) {
+          replyCount = item['reply_count'];
+        }
+
+        final bool isResolvedVal = (item['is_resolved'] == true) || 
+                                   (item['status'] == 'closed') || 
+                                   (replyCount >= 3);
+
+        if (status == 'yanitlandi' && !isResolvedVal) {
+          return false;
+        }
+        if (status == 'yanitlanmadi' && isResolvedVal) {
+          return false;
+        }
+      }
+
+      return true;
     }).toList();
 
     return filteredList.map((e) => DiscussionModel.fromJson(e)).toList();
@@ -189,6 +229,7 @@ class DiscussionRepository {
         'is_anonymous': isAnonymous,
         'attachment_urls': attachmentUrls,
         'is_off_topic': isOffTopic,
+        'status': 'active',
         'last_activity_at': DateTime.now().toIso8601String(),
       });
       return true;

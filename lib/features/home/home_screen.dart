@@ -142,7 +142,7 @@ class HomeScreen extends ConsumerWidget {
                               final isLast = entry.key == state.latestSurveys.length - 1;
                               return Padding(
                                 padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                                child: _buildLatestSurveyCard(context, ref, entry.value),
+                                child: _buildLatestSurveyCard(context, ref, entry.value, state.myVotes[entry.value.id]),
                               );
                             }).toList(),
                           ),
@@ -525,7 +525,10 @@ class HomeScreen extends ConsumerWidget {
   }
 
   // ────────── GÜNÜN ANKETİ ──────────
-  Widget _buildLatestSurveyCard(BuildContext context, WidgetRef ref, dynamic survey) {
+  Widget _buildLatestSurveyCard(BuildContext context, WidgetRef ref, dynamic survey, String? myVoteOptionId) {
+    final hasVoted = myVoteOptionId != null;
+    final totalVotes = (survey.options as List).fold<int>(0, (sum, opt) => sum + (opt.votes as int));
+
     return GestureDetector(
       onTap: () {
         // Anketler sekmesine geçiş (index 3)
@@ -535,15 +538,17 @@ class HomeScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.white, Colors.indigo[50]!],
+            colors: hasVoted 
+                ? [Colors.white, Colors.green[50]!]
+                : [Colors.white, Colors.indigo[50]!],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.indigo[100]!),
+          border: Border.all(color: hasVoted ? Colors.green[200]! : Colors.indigo[100]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.indigo.withValues(alpha: 0.08),
+              color: (hasVoted ? Colors.green : Colors.indigo).withValues(alpha: 0.06),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -557,15 +562,28 @@ class HomeScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.actionBlue.withValues(alpha: 0.1),
+                    color: hasVoted 
+                        ? Colors.green[500]!.withValues(alpha: 0.1)
+                        : AppTheme.actionBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.new_releases_rounded, size: 14, color: AppTheme.actionBlue),
+                      Icon(
+                        hasVoted ? Icons.check_circle_outline_rounded : Icons.new_releases_rounded, 
+                        size: 14, 
+                        color: hasVoted ? Colors.green[700] : AppTheme.actionBlue
+                      ),
                       const SizedBox(width: 4),
-                      Text('home_new_survey'.tr(), style: const TextStyle(color: AppTheme.actionBlue, fontSize: 11, fontWeight: FontWeight.bold)),
+                      Text(
+                        hasVoted ? 'Oylandı (Sonuçlar)' : 'home_new_survey'.tr(), 
+                        style: TextStyle(
+                          color: hasVoted ? Colors.green[700] : AppTheme.actionBlue, 
+                          fontSize: 11, 
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -587,27 +605,103 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 14),
             Text(
               survey.title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppTheme.primaryNavy, height: 1.3),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryNavy, height: 1.3),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Text(
-                  '${survey.options.length} seçenek',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            const SizedBox(height: 14),
+            
+            if (hasVoted) ...[
+              // Eşsiz ve Premium Grafik/Bar tasarımı
+              Column(
+                children: (survey.options as List).map((opt) {
+                  final double percent = totalVotes == 0 ? 0 : (opt.votes / totalVotes);
+                  final bool isSelected = myVoteOptionId == opt.id;
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                opt.text,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  color: isSelected ? Colors.green[800] : AppTheme.primaryNavy.withValues(alpha: 0.8),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '%${(percent * 100).toInt()}',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.green[700] : Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Stack(
+                          children: [
+                            Container(
+                              height: 6,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: percent,
+                              child: Container(
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? Colors.green[500] : Colors.grey[350],
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'Toplam $totalVotes Oy • Detaylar için tıklayın',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 11, fontWeight: FontWeight.w500),
                 ),
-                const Spacer(),
-                Row(
-                  children: [
-                    Text('home_click_to_participate'.tr(), style: const TextStyle(color: AppTheme.actionBlue, fontWeight: FontWeight.w600, fontSize: 13)),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.arrow_forward_rounded, size: 16, color: AppTheme.actionBlue),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  Text(
+                    '${survey.options.length} seçenek',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Text('home_click_to_participate'.tr(), style: const TextStyle(color: AppTheme.actionBlue, fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward_rounded, size: 16, color: AppTheme.actionBlue),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -841,34 +935,63 @@ class HomeScreen extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
-                      Icon(Icons.person_outline, size: 14, color: Colors.grey[500]),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                discussion.formattedAuthorName,
-                                style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.person_outline, size: 14, color: Colors.grey[500]),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              discussion.formattedAuthorName,
+                              style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if (discussion.authorHighestLevel != null) ...[
-                              const SizedBox(width: 4),
-                              LevelBadge(levelKey: discussion.authorHighestLevel!, size: 10),
-                            ],
+                          ),
+                          if (discussion.authorHighestLevel != null) ...[
+                            const SizedBox(width: 4),
+                            LevelBadge(levelKey: discussion.authorHighestLevel!, size: 10),
                           ],
-                        ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      if (discussion.replyCount > 0) ...[
-                        Icon(Icons.comment_outlined, size: 14, color: Colors.grey[500]),
-                        const SizedBox(width: 4),
-                        Text('${discussion.replyCount}', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-                      ],
+                      Text('•', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.thumb_up_alt_outlined, size: 12, color: Colors.grey[400]),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${discussion.likeCount} Beğeni',
+                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.chat_bubble_outline_rounded, size: 12, color: Colors.grey[400]),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${discussion.replyCount} Cevap',
+                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.visibility_outlined, size: 12, color: Colors.grey[400]),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${discussion.viewCount} İzlenme',
+                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
