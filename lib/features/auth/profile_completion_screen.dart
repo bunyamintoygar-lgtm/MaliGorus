@@ -82,6 +82,15 @@ class _ProfileCompletionScreenState extends ConsumerState<ProfileCompletionScree
     }
   }
 
+  Future<void> _navigateToPhotoScreen() async {
+    final result = await context.push<String>('/profile/photo', extra: _avatarUrl);
+    if (result != null && mounted) {
+      setState(() {
+        _avatarUrl = result;
+      });
+    }
+  }
+
   Future<void> _pickImage() async {
     showModalBottomSheet(
       context: context,
@@ -313,7 +322,7 @@ class _ProfileCompletionScreenState extends ConsumerState<ProfileCompletionScree
       child: Stack(
         children: [
           InkWell(
-            onTap: _pickImage,
+            onTap: _navigateToPhotoScreen,
             borderRadius: BorderRadius.circular(50),
             child: CircleAvatar(
               radius: 50,
@@ -343,7 +352,7 @@ class _ProfileCompletionScreenState extends ConsumerState<ProfileCompletionScree
             bottom: 0,
             right: 0,
             child: InkWell(
-              onTap: _pickImage,
+              onTap: _navigateToPhotoScreen,
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: const BoxDecoration(color: AppTheme.actionBlue, shape: BoxShape.circle),

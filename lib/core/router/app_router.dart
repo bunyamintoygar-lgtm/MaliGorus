@@ -24,6 +24,7 @@ import '../../features/admin/admin_level_config_screen.dart';
 import '../../features/discussions/create_discussion_screen.dart';
 import '../../features/discussions/create_consultation_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/profile/profile_photo_screen.dart';
 import '../../features/profile/other_profile_screen.dart';
 import '../../features/discussions/discussion_detail_screen.dart';
 import '../../features/discussions/consultation_detail_screen.dart';
@@ -43,12 +44,22 @@ import '../../features/profile/policies_viewer_screen.dart';
 import '../../features/profile/help_support_screen.dart';
 import '../../features/profile/about_us_screen.dart';
 import '../../features/profile/security_settings_screen.dart';
-import '../../features/admin/admin_promotions_screen.dart';
+import '../../features/admin/admin_market_products_screen.dart';
+import '../../features/admin/admin_market_product_form_screen.dart';
+import '../../features/admin/admin_market_product_hub_screen.dart';
 import '../../features/admin/admin_market_requests_screen.dart';
-import '../../features/promotions/promotion_market_screen.dart';
-import '../../features/promotions/promotion_detail_screen.dart';
 import '../../features/profile/notification_settings_screen.dart';
 import '../../features/profile/blocked_users_screen.dart';
+import '../../features/market/market_dashboard_screen.dart';
+import '../../features/market/documents_templates_screen.dart';
+import '../../features/market/certificate_programs_screen.dart';
+import '../../features/market/live_training_screen.dart';
+import '../../features/market/events_screen.dart';
+import '../../features/market/consulting_services_screen.dart';
+import '../../features/market/market_cart_screen.dart';
+import '../../features/market/market_detail_screen.dart';
+import '../../features/market/market_purchase_success_screen.dart';
+import '../../data/models/market_product_model.dart';
 
 class AuthListenable extends ChangeNotifier {
   AuthListenable(Stream<AuthState> authStateChanges) {
@@ -102,7 +113,13 @@ final appRouter = Provider<GoRouter>((ref) {
       GoRoute(path: '/home', builder: (context, state) => const MainShell()),
       GoRoute(path: '/create-survey', builder: (context, state) => const CreateSurveyScreen()),
       GoRoute(path: '/credits', builder: (context, state) => const CreditDetailsScreen()),
-      GoRoute(path: '/credit-earn', builder: (context, state) => const CreditEarnScreen()),
+      GoRoute(
+        path: '/credit-earn',
+        builder: (context, state) {
+          final scrollToPackages = state.extra == 'packages' || state.uri.queryParameters['scrollTo'] == 'packages';
+          return CreditEarnScreen(scrollToPackages: scrollToPackages);
+        },
+      ),
       GoRoute(
         path: '/chat/detail', 
         builder: (context, state) {
@@ -165,6 +182,13 @@ final appRouter = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
       GoRoute(
+        path: '/profile/photo',
+        builder: (context, state) {
+          final initialUrl = state.extra as String?;
+          return ProfilePhotoScreen(initialAvatarUrl: initialUrl);
+        },
+      ),
+      GoRoute(
         path: '/profile/:id',
         builder: (context, state) => OtherProfileScreen(userId: state.pathParameters['id']!),
       ),
@@ -210,22 +234,69 @@ final appRouter = Provider<GoRouter>((ref) {
         path: '/help-support',
         builder: (context, state) => const HelpSupportScreen(),
       ),
-      GoRoute(path: '/admin/promotions', builder: (context, state) => const AdminPromotionsScreen()),
-      GoRoute(path: '/admin/market-requests', builder: (context, state) => const AdminMarketRequestsScreen()),
-      GoRoute(path: '/promotions/market', builder: (context, state) => const PromotionMarketScreen()),
+      GoRoute(path: '/admin/market-products', builder: (context, state) => const AdminMarketProductsScreen()),
       GoRoute(
-        path: '/promotions/detail',
+        path: '/admin/market-products/form',
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          return PromotionDetailScreen(
-            promotion: extra['promotion'],
-            isPurchased: extra['isPurchased'],
+          MarketProductModel? product;
+          int? initialStep;
+          if (state.extra is MarketProductModel) {
+            product = state.extra as MarketProductModel;
+          } else if (state.extra is Map<String, dynamic>) {
+            final map = state.extra as Map<String, dynamic>;
+            final rawProduct = map['product'];
+            if (rawProduct is MarketProductModel) {
+              product = rawProduct;
+            } else if (rawProduct is Map<String, dynamic>) {
+              product = MarketProductModel.fromJson(rawProduct);
+            }
+            initialStep = map['initialStep'] as int?;
+          }
+          return AdminMarketProductFormScreen(
+            product: product,
+            initialStep: initialStep,
           );
         },
       ),
+      GoRoute(
+        path: '/admin/market-products/hub',
+        builder: (context, state) {
+          MarketProductModel? product;
+          if (state.extra is MarketProductModel) {
+            product = state.extra as MarketProductModel;
+          } else if (state.extra is Map<String, dynamic>) {
+            product = MarketProductModel.fromJson(state.extra as Map<String, dynamic>);
+          }
+          return AdminMarketProductHubScreen(
+            product: product!,
+          );
+        },
+      ),
+      GoRoute(path: '/admin/market-requests', builder: (context, state) => const AdminMarketRequestsScreen()),
       GoRoute(path: '/notification-settings', builder: (context, state) => const NotificationSettingsScreen()),
       GoRoute(path: '/blocked-users', builder: (context, state) => const BlockedUsersScreen()),
       GoRoute(path: '/credits/history', builder: (context, state) => const CreditHistoryScreen()),
+      GoRoute(path: '/market', builder: (context, state) => const MarketDashboardScreen()),
+      GoRoute(path: '/market/documents', builder: (context, state) => const DocumentsTemplatesScreen()),
+      GoRoute(path: '/market/certificates', builder: (context, state) => const CertificateProgramsScreen()),
+      GoRoute(path: '/market/live-training', builder: (context, state) => const LiveTrainingScreen()),
+      GoRoute(path: '/market/events', builder: (context, state) => const EventsScreen()),
+      GoRoute(path: '/market/consulting', builder: (context, state) => const ConsultingServicesScreen()),
+      GoRoute(path: '/market/cart', builder: (context, state) => const MarketCartScreen()),
+      GoRoute(
+        path: '/market/purchase-success',
+        builder: (context, state) {
+          final items = state.extra as List<MarketProductModel>;
+          return MarketPurchaseSuccessScreen(purchasedItems: items);
+        },
+      ),
+      GoRoute(
+        path: '/market/detail',
+        builder: (context, state) {
+          final product = state.extra as MarketProductModel;
+          return MarketDetailScreen(product: product);
+        },
+      ),
     ],
   );
 });

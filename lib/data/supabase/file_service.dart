@@ -12,12 +12,16 @@ class FileService {
   final ImagePicker _picker = ImagePicker();
 
   // Resim Seç (Profil vb. için)
-  Future<XFile?> pickImage({ImageSource source = ImageSource.gallery}) async {
+  Future<XFile?> pickImage({
+    ImageSource source = ImageSource.gallery,
+    CameraDevice preferredCameraDevice = CameraDevice.rear,
+  }) async {
     return await _picker.pickImage(
       source: source,
       imageQuality: 70,
       maxWidth: 1024,
       maxHeight: 1024,
+      preferredCameraDevice: preferredCameraDevice,
     );
   }
 
@@ -78,6 +82,32 @@ class FileService {
       return null;
     }
   }
+
+  // Raw Bytes Yükleme Metodu (Kırpılmış görüntüler için)
+  Future<String?> uploadBytes({
+    required Uint8List bytes,
+    required String name,
+    required String bucket,
+    required String folder,
+    String contentType = 'image/png',
+  }) async {
+    try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_$name';
+      final path = '$folder/$fileName';
+
+      await _client.storage.from(bucket).uploadBinary(
+        path, 
+        bytes,
+        fileOptions: FileOptions(contentType: contentType),
+      );
+
+      return _client.storage.from(bucket).getPublicUrl(path);
+    } catch (e) {
+      print('Upload Bytes Error: $e');
+      return null;
+    }
+  }
+
   Future<bool> deleteFile(String url, String bucket) async {
     try {
       final uri = Uri.parse(url);

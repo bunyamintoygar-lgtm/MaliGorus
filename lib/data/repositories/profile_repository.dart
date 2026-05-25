@@ -85,4 +85,13 @@ class ProfileRepository {
       );
     }
   }
+
+  Future<void> updateAvatar(String? avatarUrl) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    await _client.from('profiles').update({
+      'avatar_url': avatarUrl,
+    }).eq('id', userId);
+  }
 }

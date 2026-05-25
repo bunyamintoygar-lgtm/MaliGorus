@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import '../../core/theme/app_theme.dart';
-import '../../data/models/promotion_model.dart';
-import '../../data/supabase/promotion_service.dart';
 import 'dart:async';
+import '../../core/theme/app_theme.dart';
+import '../../data/models/market_purchase_model.dart';
+import '../../data/supabase/admin_market_service.dart';
 
 class AdminMarketRequestsScreen extends ConsumerStatefulWidget {
   const AdminMarketRequestsScreen({super.key});
@@ -20,7 +19,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
 
-  List<PromotionPurchaseModel> _purchases = [];
+  List<MarketPurchaseModel> _purchases = [];
   bool _loading = true;
   bool _loadingMore = false;
   bool _hasMore = true;
@@ -62,7 +61,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
     }
 
     try {
-      final list = await ref.read(promotionServiceProvider).getAllPurchases(
+      final list = await ref.read(adminMarketServiceProvider).getAllPurchases(
             offset: _offset,
             limit: _limit,
             status: _selectedStatus,
@@ -95,9 +94,9 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
     });
   }
 
-  Future<void> _updateStatus(PromotionPurchaseModel purchase, String newStatus) async {
+  Future<void> _updateStatus(MarketPurchaseModel purchase, String newStatus) async {
     try {
-      await ref.read(promotionServiceProvider).updatePurchaseStatus(purchase, newStatus);
+      await ref.read(adminMarketServiceProvider).updatePurchaseStatus(purchase, newStatus);
       _loadPurchases();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,11 +118,12 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF1F3F8),
       appBar: AppBar(
-        title: const Text('Market Talepleri'),
+        title: const Text('Market Talepleri', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppTheme.primaryNavy,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -138,10 +138,16 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
                         : ListView.builder(
                             controller: _scrollController,
                             padding: const EdgeInsets.all(16),
+                            physics: const BouncingScrollPhysics(),
                             itemCount: _purchases.length + (_loadingMore ? 1 : 0),
                             itemBuilder: (context, index) {
                               if (index == _purchases.length) {
-                                return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                );
                               }
                               return _buildPurchaseCard(_purchases[index]);
                             },
@@ -177,6 +183,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
           const SizedBox(height: 12),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
                 _buildFilterChip('Hepsi', 'all'),
@@ -240,9 +247,11 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
     );
   }
 
-  Widget _buildPurchaseCard(PromotionPurchaseModel purchase) {
+  Widget _buildPurchaseCard(MarketPurchaseModel purchase) {
     final dateStr = DateFormat('dd.MM.yyyy HH:mm').format(purchase.createdAt);
-    
+    final imageUrl = purchase.product?.imageUrl;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
@@ -275,10 +284,10 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: purchase.promotion?.imageUrl != null
+                      child: hasImage
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(15),
-                              child: Image.network(purchase.promotion!.imageUrl!, fit: BoxFit.cover),
+                              child: Image.network(imageUrl, fit: BoxFit.cover),
                             )
                           : const Icon(Icons.shopping_bag_outlined, color: Colors.grey, size: 32),
                     ),
@@ -288,8 +297,8 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            purchase.promotion?.title ?? 'Silinmiş Ürün',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            purchase.product?.title ?? 'Silinmiş Ürün',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryNavy),
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -297,7 +306,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
                               const Icon(Icons.stars_rounded, color: AppTheme.creditGold, size: 16),
                               const SizedBox(width: 4),
                               Text(
-                                '${purchase.creditAmount} Kredi',
+                                '${purchase.creditPaid} Kredi',
                                 style: const TextStyle(color: AppTheme.creditGold, fontWeight: FontWeight.bold, fontSize: 14),
                               ),
                             ],
@@ -328,7 +337,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
                         Expanded(
                           child: Text(
                             purchase.userName ?? 'Bilinmeyen Kullanıcı',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                           ),
                         ),
                         const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.blue),
@@ -352,7 +361,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
                     child: TextButton(
                       onPressed: () => _showConfirmDialog(purchase, 'cancelled'),
                       style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text('İptal Et', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('İptal Et & İade Et', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -365,7 +374,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Tamamlandı', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('Tamamlandı Onayla', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -376,20 +385,21 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
     );
   }
 
-  void _showConfirmDialog(PromotionPurchaseModel purchase, String status) {
+  void _showConfirmDialog(MarketPurchaseModel purchase, String status) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('İptal Onayı'),
-        content: const Text('Bu talebi iptal etmek istediğinize emin misiniz? Kullanıcının kredisi iade edilecektir.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('İptal & İade Onayı', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Bu talebi iptal etmek istediğinize emin misiniz? Kullanıcının kredisi anında iade edilecek ve stok geri yüklenecektir.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Vazgeç')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Vazgeç', style: TextStyle(color: Colors.grey))),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _updateStatus(purchase, 'cancelled');
             },
-            child: const Text('Evet, İptal Et', style: TextStyle(color: Colors.red)),
+            child: const Text('Evet, İptal ve İade Et', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -399,7 +409,7 @@ class _AdminMarketRequestsScreenState extends ConsumerState<AdminMarketRequestsS
   Widget _buildStatusBadge(String status) {
     Color color;
     String text;
-    
+
     switch (status) {
       case 'completed':
         color = Colors.green;

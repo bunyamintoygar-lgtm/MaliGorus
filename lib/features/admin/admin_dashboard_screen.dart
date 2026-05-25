@@ -163,9 +163,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                     context,
                     icon: Icons.card_giftcard_rounded,
                     color: Colors.pink,
-                    title: 'Promosyon Yönetimi',
+                    title: 'Market Ürünleri',
                     description: 'Kredi marketi ürünlerini yönet',
-                    route: '/admin/promotions',
+                    route: '/admin/market-products',
                   ),
 
                   _buildModuleCard(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -98,12 +99,26 @@ class _SplashScreenState extends State<SplashScreen> {
       final List<dynamic> response = await Supabase.instance.client
           .from('app_config')
           .select('key, value')
-          .inFilter('key', ['min_app_version', 'update_url']);
+          .inFilter('key', ['min_app_version', 'update_url', 'update_url_ios', 'update_url_android']);
 
       String? minVersion;
+      String? defaultUrl;
+      String? iosUrl;
+      String? androidUrl;
+
       for (var row in response) {
         if (row['key'] == 'min_app_version') minVersion = row['value']?.toString();
-        if (row['key'] == 'update_url') _updateUrl = row['value']?.toString();
+        if (row['key'] == 'update_url') defaultUrl = row['value']?.toString();
+        if (row['key'] == 'update_url_ios') iosUrl = row['value']?.toString();
+        if (row['key'] == 'update_url_android') androidUrl = row['value']?.toString();
+      }
+
+      if (defaultTargetPlatform == TargetPlatform.iOS && iosUrl != null && iosUrl.isNotEmpty) {
+        _updateUrl = iosUrl;
+      } else if (defaultTargetPlatform == TargetPlatform.android && androidUrl != null && androidUrl.isNotEmpty) {
+        _updateUrl = androidUrl;
+      } else {
+        _updateUrl = defaultUrl;
       }
 
       if (minVersion != null) {

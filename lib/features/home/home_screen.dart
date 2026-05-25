@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'home_provider.dart';
 import 'main_shell.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -20,8 +22,16 @@ import '../../core/utils/listing_utils.dart';
 import '../../core/widgets/unified_header.dart';
 import '../credits/level_details_dialog.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _isProfilePhotoBannerDismissed = false;
+  bool _isUpdateBannerDismissed = false;
 
   Future<void> _showLogoutDialog(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
@@ -48,7 +58,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
 
     return Scaffold(
@@ -56,33 +66,108 @@ class HomeScreen extends ConsumerWidget {
       body: homeState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('error_loading'.tr(args: [err.toString()]))),
-        data: (state) => RefreshIndicator(
-          onRefresh: () => ref.read(homeProvider.notifier).loadHomeData(),
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverUnifiedHeader(profile: state.profile, isAdmin: state.profile?.isAdmin ?? false),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10.0, bottom: 24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Kredi Kartı
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: _buildPremiumCreditCard(context, ref, state.profile, isIntegrated: false),
-                      ),
+        data: (state) {
+          final marketEnabled = ref.watch(marketEnabledProvider).value ?? true;
+          return RefreshIndicator(
+            onRefresh: () async {
+              await ref.read(homeProvider.notifier).loadHomeData();
+              ref.invalidate(appConfigProvider);
+              ref.invalidate(updateAvailableProvider);
+            },
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverUnifiedHeader(profile: state.profile, isAdmin: state.profile?.isAdmin ?? false),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10.0, bottom: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Kredi Kartı
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _buildPremiumCreditCard(context, ref, state.profile, isIntegrated: false),
+                        ),
 
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                      // Hızlı Aksiyonlar (Tartış, Danış, Anket, İlan)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: _buildQuickActions(context, ref),
-                      ),
+                        // Hızlı Aksiyonlar (Tartış, Danış, Anket, İlan)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _buildQuickActions(context, ref),
+                        ),
 
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 24),
+
+                        // Market Banner
+                        if (marketEnabled) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.purple.withValues(alpha: 0.2),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white24,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 24),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'MaliGörüş Market',
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Kredileriniz ile eğitim, sertifika ve hazır doküman şablonları alın.',
+                                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => context.push('/market'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: const Color(0xFF6A1B9A),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      elevation: 0,
+                                    ),
+                                    child: const Text(
+                                      'Giriş Yap',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
 
                       // Hediye Bildirimi
                       Consumer(
@@ -92,7 +177,7 @@ class HomeScreen extends ConsumerWidget {
                             data: (gift) {
                               if (gift == null) return const SizedBox.shrink();
                               return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
                                 child: _buildCreditGiftNotification(context, ref, gift),
                               );
                             },
@@ -101,8 +186,6 @@ class HomeScreen extends ConsumerWidget {
                           );
                         },
                       ),
-
-                      const SizedBox(height: 28),
 
                       // Bildirimler
                       if (state.totalNotifications > 0) ...[
@@ -119,7 +202,42 @@ class HomeScreen extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: _buildNotificationsSection(context, state),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Soft Update Banner'ı
+                      ref.watch(updateAvailableProvider).when(
+                        data: (isAvailable) {
+                          if (isAvailable && !_isUpdateBannerDismissed) {
+                            final config = ref.read(appConfigProvider).value;
+                            String updateUrl = '';
+                            if (defaultTargetPlatform == TargetPlatform.iOS) {
+                              updateUrl = config?['update_url_ios']?.toString() ?? '';
+                            } else if (defaultTargetPlatform == TargetPlatform.android) {
+                              updateUrl = config?['update_url_android']?.toString() ?? '';
+                            }
+                            if (updateUrl.isEmpty) {
+                              updateUrl = config?['update_url']?.toString() ?? '';
+                            }
+
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 20.0),
+                              child: _buildUpdateBanner(context, updateUrl),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+
+                      // Profil Fotoğrafı Banner'ı
+                      if ((state.profile?.avatarUrl == null || state.profile!.avatarUrl!.isEmpty) && !_isProfilePhotoBannerDismissed) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _buildProfilePhotoBanner(context, state),
+                        ),
+                        const SizedBox(height: 24),
                       ],
 
                       // Son Anketler
@@ -225,10 +343,11 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
+        );
+      },
+    ),
+  );
+}
 
   // ────────── KREDİ KARTI ──────────
   Widget _buildPremiumCreditCard(BuildContext context, WidgetRef ref, ProfileModel? profile, {bool isIntegrated = false}) {
@@ -1211,6 +1330,222 @@ class HomeScreen extends ConsumerWidget {
             Text(message, style: TextStyle(color: Colors.grey[500], fontSize: 14)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfilePhotoBanner(BuildContext context, HomeState state) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () => context.push('/profile/photo', extra: state.profile?.avatarUrl),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 20, 36, 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF5FF), // Soft light purple background
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE9D5FF), width: 1.2),
+            ),
+            child: Row(
+              children: [
+                // Circular avatar representation with plus badge
+                Stack(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(
+                          color: const Color(0xFF8B5CF6),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.camera_alt_rounded,
+                          color: Color(0xFF8B5CF6),
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF7C3AED),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                // Content Column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Profil fotoğrafınızı ekleyin',
+                        style: TextStyle(
+                          color: Color(0xFF3B0764),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Diğer kullanıcıların sizi daha kolay tanımasına yardımcı olur. Hemen bir profil fotoğrafı yükleyerek profilinizi tamamlayın.',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Close Button
+        Positioned(
+          top: 10,
+          right: 10,
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _isProfilePhotoBannerDismissed = true;
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: const Padding(
+              padding: EdgeInsets.all(6.0),
+              child: Icon(
+                Icons.close_rounded,
+                color: Color(0xFF6B7280),
+                size: 18,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUpdateBanner(BuildContext context, String updateUrl) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Colors.white24,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.system_update_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Yeni Sürüm Hazır!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Uygulamamızı en yeni özellikler ve performans iyileştirmeleri ile kullanmak için güncelleyin.',
+                  style: TextStyle(
+                    color: Color(0xE6FFFFFF),
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (updateUrl.isNotEmpty) {
+                          final uri = Uri.tryParse(updateUrl);
+                          if (uri != null && await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1D4ED8),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      child: const Text(
+                        'Şimdi Güncelle',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _isUpdateBannerDismissed = true;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      child: const Text(
+                        'Daha Sonra',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -2,6 +2,7 @@
   "common_close": "Kapat",
   "home_announcement_badge": "DUYURU",
   "app_name": "MaliGörüş",
+  "market_title": "MaliGörüş Market",
   "app_slogan": "Mali konularda görüş alın, doğru karar verin.",
   "welcome": "Hoş Geldiniz!",
   "profile": "Profil",
@@ -589,5 +590,16 @@
   "moderation_checking_image": "Lütfen bekleyiniz..",
   "moderation_rejected_title": "İçerik Uygun Değil",
   "moderation_rejected_msg": "Gönderiniz topluluk kurallarına veya uygulama konusuna (mali/muhasebe) uygun görünmüyor.",
-  "moderation_error": "İçerik kontrolü sırasında bir hata oluştu. Lütfen tekrar deneyin."
+  "moderation_error": "İçerik kontrolü sırasında bir hata oluştu. Lütfen tekrar deneyin.",
+  "profile_photo_title": "Profil Fotoğrafı",
+  "profile_photo_header": "Profil fotoğrafınız",
+  "profile_photo_desc": "Profil fotoğrafınız, toplulukta ve sertifikanızda görünecektir.",
+  "profile_photo_select_gallery": "Galeriden Seç",
+  "profile_photo_select_gallery_sub": "Cihazınızdan fotoğraf seçin",
+  "profile_photo_take_photo": "Fotoğraf Çek",
+  "profile_photo_take_photo_sub": "Hemen yeni bir fotoğraf çekin",
+  "profile_photo_tip_1": "En iyi sonuç için yüzünüzün net göründüğü bir fotoğraf kullanın.",
+  "profile_photo_quick_options": "Hızlı Seçenekler",
+  "profile_photo_more": "Daha Fazlası",
+  "profile_photo_saved_success": "Profil fotoğrafınız başarıyla güncellendi."
 }

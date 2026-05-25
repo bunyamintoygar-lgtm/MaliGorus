@@ -61,11 +61,34 @@ class ProfileScreen extends ConsumerWidget {
   Widget _buildHeader(BuildContext context, ProfileModel? user) {
     return Column(
       children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundImage: user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
-          backgroundColor: AppTheme.primaryNavy.withValues(alpha: 0.1),
-          child: user?.avatarUrl == null ? const Icon(Icons.person, size: 50, color: AppTheme.primaryNavy) : null,
+        GestureDetector(
+          onTap: () => context.push('/profile/photo', extra: user?.avatarUrl),
+          child: Stack(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
+                backgroundColor: AppTheme.primaryNavy.withValues(alpha: 0.1),
+                child: user?.avatarUrl == null ? const Icon(Icons.person, size: 50, color: AppTheme.primaryNavy) : null,
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: AppTheme.actionBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Row(

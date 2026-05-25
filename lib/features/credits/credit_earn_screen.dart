@@ -19,7 +19,8 @@ import '../../data/repositories/referral_repository.dart';
 import 'package:flutter/services.dart';
 
 class CreditEarnScreen extends ConsumerStatefulWidget {
-  const CreditEarnScreen({super.key});
+  final bool scrollToPackages;
+  const CreditEarnScreen({super.key, this.scrollToPackages = false});
 
   @override
   ConsumerState<CreditEarnScreen> createState() => _CreditEarnScreenState();
@@ -37,6 +38,19 @@ class _CreditEarnScreenState extends ConsumerState<CreditEarnScreen> {
     super.initState();
     _loadData();
     _scrollController.addListener(_onScroll);
+    if (widget.scrollToPackages) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              550.0,
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.fastOutSlowIn,
+            );
+          }
+        });
+      });
+    }
   }
 
   Future<void> _loadData() async {
@@ -569,7 +583,7 @@ class _CreditEarnScreenState extends ConsumerState<CreditEarnScreen> {
             context.push('/create-listing');
             break;
           case 'promotion_buy':
-            context.push('/promotions/market');
+            context.push('/market');
             break;
           case 'chat_message':
             ref.read(mainTabIndexProvider.notifier).setTab(5); // Chat tab
