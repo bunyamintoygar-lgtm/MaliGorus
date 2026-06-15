@@ -26,6 +26,7 @@ import '../../features/discussions/create_consultation_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/profile_photo_screen.dart';
 import '../../features/profile/other_profile_screen.dart';
+import '../../features/profile/follows_list_screen.dart';
 import '../../features/connections/participants_screen.dart';
 import '../../features/connections/participant_detail_screen.dart';
 import '../../features/discussions/discussion_detail_screen.dart';
@@ -198,6 +199,14 @@ final appRouter = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile/:id',
         builder: (context, state) => OtherProfileScreen(userId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/profile/:id/follows',
+        builder: (context, state) {
+          final userId = state.pathParameters['id']!;
+          final tab = state.uri.queryParameters['tab'] ?? 'followers';
+          return FollowsListScreen(userId: userId, initialTab: tab);
+        },
       ),
       GoRoute(
         path: '/profile/other/:id',

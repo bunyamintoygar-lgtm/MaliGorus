@@ -17,6 +17,8 @@ import '../../data/models/level_model.dart';
 import '../../core/providers/app_config_provider.dart';
 import '../../core/services/moderation_service.dart';
 import '../../core/utils/moderation_ui.dart';
+import 'follower_provider.dart';
+import '../../data/repositories/follower_repository.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -151,6 +153,52 @@ class ProfileScreen extends ConsumerWidget {
                 letterSpacing: 0.8,
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          // Followers & Following counts
+          Consumer(
+            builder: (context, ref, child) {
+              final countsAsync = ref.watch(followCountsProvider(user!.id));
+              return countsAsync.when(
+                data: (counts) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: () => context.push('/profile/${user!.id}/follows?tab=followers'),
+                        child: Text(
+                          '${counts.followersCount} Takipçi',
+                          style: const TextStyle(
+                            color: AppTheme.actionBlue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '|',
+                        style: TextStyle(color: Colors.grey[300]),
+                      ),
+                      const SizedBox(width: 12),
+                      InkWell(
+                        onTap: () => context.push('/profile/${user!.id}/follows?tab=following'),
+                        child: Text(
+                          '${counts.followingCount} Takip Edilen',
+                          style: const TextStyle(
+                            color: AppTheme.actionBlue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+                loading: () => const SizedBox(height: 18),
+                error: (_, __) => const SizedBox(height: 18),
+              );
+            },
           ),
         ],
       ],

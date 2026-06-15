@@ -12,6 +12,8 @@ import '../../data/repositories/chat_repository.dart';
 import '../../core/widgets/level_badge.dart';
 import '../home/home_provider.dart';
 import '../../core/utils/level_permissions.dart';
+import 'follower_provider.dart';
+import '../../data/repositories/follower_repository.dart';
 
 final isBlockedProvider = FutureProvider.family<bool, String>((ref, userId) async {
   final repo = ref.read(chatRepositoryProvider);
@@ -172,15 +174,134 @@ class OtherProfileScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
+        // Followers & Following counts
+        Consumer(
+          builder: (context, ref, child) {
+            final countsAsync = ref.watch(followCountsProvider(profile.id));
+            return countsAsync.when(
+              data: (counts) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    InkWell(
+                      onTap: () => context.push('/profile/${profile.id}/follows?tab=followers'),
+                      child: Text(
+                        '${counts.followersCount} Takipçi',
+                        style: const TextStyle(
+                          color: AppTheme.actionBlue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '|',
+                      style: TextStyle(color: Colors.grey[300]),
+                    ),
+                    const SizedBox(width: 12),
+                    InkWell(
+                      onTap: () => context.push('/profile/${profile.id}/follows?tab=following'),
+                      child: Text(
+                        '${counts.followingCount} Takip Edilen',
+                        style: const TextStyle(
+                          color: AppTheme.actionBlue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const SizedBox(height: 18),
+              error: (_, __) => const SizedBox(height: 18),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
         if (Supabase.instance.client.auth.currentUser?.id != profile.id) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Consumer(
+              builder: (context, ref, child) {
+                final isFollowingAsync = ref.watch(isFollowingProvider(profile.id));
+                return isFollowingAsync.when(
+                  data: (isFollowing) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isFollowing
+                                ? Colors.grey[200]
+                                : const Color(0xFF4A3AFF),
+                            foregroundColor: isFollowing
+                                ? Colors.grey[800]
+                                : Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: isFollowing
+                                  ? BorderSide(color: Colors.grey[300]!)
+                                  : BorderSide.none,
+                            ),
+                          ),
+                          onPressed: () async {
+                            final repo = ref.read(followerRepositoryProvider);
+                            if (isFollowing) {
+                              await repo.unfollowUser(profile.id);
+                            } else {
+                              await repo.followUser(profile.id);
+                            }
+                            ref.invalidate(isFollowingProvider(profile.id));
+                            ref.invalidate(followCountsProvider(profile.id));
+                            final myId = Supabase.instance.client.auth.currentUser?.id;
+                            if (myId != null) {
+                              ref.invalidate(followCountsProvider(myId));
+                              ref.invalidate(followingListProvider(myId));
+                            }
+                            ref.invalidate(followersListProvider(profile.id));
+                          },
+                          icon: Icon(
+                            isFollowing ? Icons.check : Icons.add,
+                            size: 18,
+                          ),
+                          label: Text(
+                            isFollowing ? 'Takip Ediliyor' : 'Takip Et',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Takip ederek yeni paylaşımlarını akışında görebilirsin.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+                  error: (_, __) => const SizedBox.shrink(),
+                );
+              },
+            ),
+          ),
           const SizedBox(height: 16),
           const Divider(indent: 40, endIndent: 40),
           const SizedBox(height: 8),
-
-          // Send Message
+          
+          // Send Message Action Card
           _buildActionCard(
             context: context,
-            icon: Icons.message_rounded,
+            icon: Icons.chat_bubble_outline_rounded,
             iconColor: AppTheme.actionBlue,
             title: 'profile_send_message'.tr(),
             description: 'profile_send_message_desc'.tr(),
@@ -200,7 +321,7 @@ class OtherProfileScreen extends ConsumerWidget {
               });
             },
           ),
-          
+
           // Gift Credits
           _buildActionCard(
             context: context,
