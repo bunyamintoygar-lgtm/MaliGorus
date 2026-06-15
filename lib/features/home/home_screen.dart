@@ -27,7 +27,9 @@ import 'package:intl/intl.dart';
 final participantCountProvider = FutureProvider<int>((ref) async {
   final response = await Supabase.instance.client
       .from('profiles')
-      .select('id');
+      .select('id')
+      .eq('is_banned', false)
+      .eq('profile_completed', true);
   return (response as List).length;
 });
 
