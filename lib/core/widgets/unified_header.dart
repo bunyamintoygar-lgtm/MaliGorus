@@ -91,6 +91,11 @@ class UnifiedHeader extends ConsumerWidget {
             const SizedBox(width: 8),
           ],
           _buildHeaderIconButton(
+            icon: Icons.people_alt_rounded,
+            onTap: () => context.push('/participants'),
+          ),
+          const SizedBox(width: 8),
+          _buildHeaderIconButton(
             icon: Icons.person_outline_rounded,
             onTap: () => context.push('/profile'),
           ),

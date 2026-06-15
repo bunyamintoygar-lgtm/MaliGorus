@@ -21,6 +21,15 @@ import '../../core/widgets/level_badge.dart';
 import '../../core/utils/listing_utils.dart';
 import '../../core/widgets/unified_header.dart';
 import '../credits/level_details_dialog.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
+
+final participantCountProvider = FutureProvider<int>((ref) async {
+  final response = await Supabase.instance.client
+      .from('profiles')
+      .select('id');
+  return (response as List).length;
+});
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -168,6 +177,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                           const SizedBox(height: 16),
                         ],
+
+                        // Katılımcılar Kutusu
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _buildParticipantsCard(context, ref),
+                        ),
+                        const SizedBox(height: 24),
 
                       // Hediye Bildirimi
                       Consumer(
@@ -550,6 +566,157 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             tabIndex: 4,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildParticipantsCard(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalMembersAsync = ref.watch(participantCountProvider);
+
+    return InkWell(
+      onTap: () => context.push('/participants'),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[900] : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFF4A3AFF).withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4A3AFF).withValues(alpha: isDark ? 0.15 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Left large icon
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4A3AFF).withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.people_alt_rounded,
+                color: Color(0xFF4A3AFF),
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            
+            // Middle text info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Katılımcılar',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppTheme.primaryNavy,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tartışma, danışma ve anketlere katılan tüm üyeler',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  totalMembersAsync.when(
+                    data: (count) {
+                      final formatter = NumberFormat('#,###', 'tr_TR');
+                      final formattedCount = formatter.format(count);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            formattedCount,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.primaryNavy,
+                            ),
+                          ),
+                          Text(
+                            'Toplam üye',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? Colors.grey[500] : Colors.grey[500],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (_, __) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '-',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.primaryNavy,
+                          ),
+                        ),
+                        Text(
+                          'Toplam üye',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isDark ? Colors.grey[500] : Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Right action / chevron
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A3AFF).withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.people_outline_rounded,
+                    color: Color(0xFF4A3AFF),
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: isDark ? Colors.grey[600] : Colors.grey[400],
+                  size: 24,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -26,6 +26,8 @@ import '../../features/discussions/create_consultation_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/profile_photo_screen.dart';
 import '../../features/profile/other_profile_screen.dart';
+import '../../features/connections/participants_screen.dart';
+import '../../features/connections/participant_detail_screen.dart';
 import '../../features/discussions/discussion_detail_screen.dart';
 import '../../features/discussions/consultation_detail_screen.dart';
 import '../../data/models/discussion_model.dart';
@@ -181,6 +183,11 @@ final appRouter = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
+      GoRoute(path: '/participants', builder: (context, state) => const ParticipantsScreen()),
+      GoRoute(
+        path: '/participant-detail/:id',
+        builder: (context, state) => ParticipantDetailScreen(userId: state.pathParameters['id']!),
+      ),
       GoRoute(
         path: '/profile/photo',
         builder: (context, state) {
