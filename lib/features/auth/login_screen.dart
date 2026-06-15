@@ -95,6 +95,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       message = 'login_error_network'.tr();
     } else if (message.contains('user_not_found')) {
       message = 'login_error_user_not_found'.tr();
+    } else if (message.toLowerCase().contains('canceled') || message.toLowerCase().contains('cancelled')) {
+      message = 'login_error_google_canceled'.tr();
     }
 
     ScaffoldMessenger.of(context).showSnackBar(

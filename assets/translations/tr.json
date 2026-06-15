@@ -511,6 +511,7 @@
   "login_error_credentials": "E-posta veya şifre hatalı.",
   "login_error_network": "Ağ bağlantısı hatası oluştu.",
   "login_error_user_not_found": "Kullanıcı bulunamadı.",
+  "login_error_google_canceled": "Google ile giriş işlemi iptal edildi.",
   "login_fill_fields": "Lütfen e-posta ve şifrenizi girin.",
   "login_subtitle": "MALİ KONULARDA GÖRÜŞ ALIN, DOĞRU KARAR VERİN",
   "login_hint_email": "E-posta adresiniz",
