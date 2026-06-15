@@ -341,7 +341,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     final profile = ProfileModel.fromJson(user);
     final isAdmin = profile.isAdmin;
     final isBanned = profile.isBanned;
-    final initial = (profile.fullName ?? '?').isNotEmpty ? profile.fullName![0].toUpperCase() : '?';
+    final initial = (profile.fullName != null && profile.fullName!.isNotEmpty) ? profile.fullName![0].toUpperCase() : '?';
 
     return Container(
       padding: const EdgeInsets.all(16),
