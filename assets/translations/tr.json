@@ -537,6 +537,7 @@
   "register_error_password_length": "Şifre en az 6 karakter olmalı",
   "register_error_confirm_password_required": "Şifrenizi tekrar girin",
   "register_error_password_mismatch": "Şifreler uyuşmuyor",
+  "register_error_email_exists": "Bu e-posta adresi zaten kayıtlı. Giriş yapabilir veya şifrenizi sıfırlayabilirsiniz.",
   "register_agreement_prefix": "Kayıt olarak ",
   "register_terms": "Kullanım Koşulları",
   "register_agreement_and": " ve ",

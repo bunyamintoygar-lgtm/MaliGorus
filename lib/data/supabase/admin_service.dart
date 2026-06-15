@@ -7,7 +7,7 @@ class AdminService {
   Future<Map<String, int>> getStats() async {
     try {
       final results = await Future.wait([
-        _client.from('profiles').select('id').count(CountOption.exact).then((v) => v.count),
+        _client.from('profiles').select('id').eq('profile_completed', true).count(CountOption.exact).then((v) => v.count),
         _client.from('discussions').select('id').count(CountOption.exact).then((v) => v.count),
         _client.from('listings').select('id').count(CountOption.exact).then((v) => v.count),
         _client.from('user_reports').select('id').eq('status', 'pending').count(CountOption.exact).then((v) => v.count),
@@ -33,6 +33,7 @@ class AdminService {
       final response = await _client
           .from('profiles')
           .select('created_at')
+          .eq('profile_completed', true)
           .gte('created_at', sevenDaysAgo.toIso8601String())
           .order('created_at');
 
@@ -69,7 +70,7 @@ class AdminService {
     bool sortAsc = false,
     String? profession,            // 'mali_musavir' | 'muhasebe_uzmani' | 'ymm' | null
   }) async {
-    var query = _client.from('profiles').select();
+    var query = _client.from('profiles').select().eq('profile_completed', true);
     
     // Unvan filtresi
     if (profession != null && profession.isNotEmpty) {

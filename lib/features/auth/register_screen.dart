@@ -36,10 +36,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       final authRepo = ref.read(authRepositoryProvider);
-      await authRepo.signUpWithEmail(
+      final response = await authRepo.signUpWithEmail(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
+      
+      if (response.user?.identities?.isEmpty ?? true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('register_error_email_exists'.tr())),
+          );
+        }
+        return;
+      }
       
       if (mounted) {
         setState(() => _isSent = true);
