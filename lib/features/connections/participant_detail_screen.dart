@@ -472,7 +472,7 @@ class _ParticipantDetailScreenState extends ConsumerState<ParticipantDetailScree
   }
 
   Widget _buildProfileHeader(BuildContext context, ProfileModel profile, bool isDark) {
-    final initial = (profile.fullName ?? '?').isNotEmpty ? profile.fullName![0].toUpperCase() : '?';
+    final initial = (profile.fullName != null && profile.fullName!.isNotEmpty) ? profile.fullName![0].toUpperCase() : '?';
     final isOnline = profile.id.hashCode % 3 != 0;
 
     return Container(

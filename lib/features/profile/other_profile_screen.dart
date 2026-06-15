@@ -91,7 +91,7 @@ class OtherProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref, ProfileModel profile, String professionLabel) {
-    final initial = (profile.fullName ?? '?').isNotEmpty ? profile.fullName![0].toUpperCase() : '?';
+    final initial = (profile.fullName != null && profile.fullName!.isNotEmpty) ? profile.fullName![0].toUpperCase() : '?';
     final joinedDate = profile.createdAt != null 
         ? DateFormat('MMMM yyyy').format(profile.createdAt!) 
         : '-';

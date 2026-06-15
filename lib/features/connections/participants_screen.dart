@@ -352,7 +352,7 @@ class _ParticipantsScreenState extends ConsumerState<ParticipantsScreen> {
   }
 
   Widget _buildParticipantCard(BuildContext context, ParticipantData participant, bool isDark) {
-    final initial = (participant.fullName ?? '?').isNotEmpty ? participant.fullName![0].toUpperCase() : '?';
+    final initial = (participant.fullName != null && participant.fullName!.isNotEmpty) ? participant.fullName![0].toUpperCase() : '?';
     final isOnline = participant.id.hashCode % 3 != 0;
 
     return Padding(
