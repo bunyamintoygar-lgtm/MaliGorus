@@ -24,14 +24,7 @@ import '../credits/level_details_dialog.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
-final participantCountProvider = FutureProvider<int>((ref) async {
-  final response = await Supabase.instance.client
-      .from('profiles')
-      .select('id')
-      .eq('is_banned', false)
-      .eq('profile_completed', true);
-  return (response as List).length;
-});
+
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -574,7 +567,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildParticipantsCard(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final totalMembersAsync = ref.watch(participantCountProvider);
 
     return InkWell(
       onTap: () => context.push('/participants'),
@@ -634,59 +626,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       fontSize: 11,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                       height: 1.3,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  totalMembersAsync.when(
-                    data: (count) {
-                      final formatter = NumberFormat('#,###', 'tr_TR');
-                      final formattedCount = formatter.format(count);
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            formattedCount,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.primaryNavy,
-                            ),
-                          ),
-                          Text(
-                            'Toplam üye',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: isDark ? Colors.grey[500] : Colors.grey[500],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    error: (_, __) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '-',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.primaryNavy,
-                          ),
-                        ),
-                        Text(
-                          'Toplam üye',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isDark ? Colors.grey[500] : Colors.grey[500],
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
