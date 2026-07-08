@@ -12,6 +12,27 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Mobil Cihaz Yönlendirme
+        (function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('no_redirect') === '1') return;
+
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            var androidLink = "https://play.google.com/store/apps/details?id=com.maligorus.maligorus";
+            var iosLink = "https://apps.apple.com/tr/app/malig%C3%B6r%C3%BC%C5%9F/id6765759650?l=tr";
+
+            // Kullanıcı Android ise Play Store'a yönlendir
+            if (/android/i.test(userAgent)) {
+                window.location.href = androidLink;
+            } 
+            // Kullanıcı iOS (iPhone, iPod, iPad) ise App Store'a yönlendir
+            // MacIntel + maxTouchPoints kontrolü yeni nesil iPad'leri de yakalar
+            else if (/iPad|iPhone|iPod/i.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+                window.location.href = iosLink;
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -40,10 +61,10 @@
                         alabileceğiniz ve meslektaşlarınızla ağ kurabileceğiniz kapalı devre bir profesyonel
                         platformdur.</p>
                     <div class="badge-group">
-                        <a href="#"><img
+                        <a href="https://apps.apple.com/tr/app/malig%C3%B6r%C3%BC%C5%9F/id6765759650?l=tr"><img
                                 src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/tr-tr?size=250x83&amp;releaseDate=1314662400&h=656911571477174e5033c4608c5c7075"
                                 alt="Download on App Store" class="app-badge"></a>
-                        <a href="#"><img
+                        <a href="https://play.google.com/store/apps/details?id=com.maligorus.maligorus"><img
                                 src="https://play.google.com/intl/en_us/badges/static/images/badges/tr_badge_web_generic.png"
                                 alt="Get it on Google Play" class="app-badge"
                                 style="height: 64px; margin-top: -8px;"></a>
