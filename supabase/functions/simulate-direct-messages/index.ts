@@ -126,7 +126,7 @@ Kurallar:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "gpt-5.4-mini",
+          model: "gpt-5.6-luna",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.85,
         })

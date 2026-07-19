@@ -30,23 +30,49 @@ async function fetchPlaceDetails(placeId: string) {
 
 async function scrapeEmailFromWebsite(url: string): Promise<string[]> {
   console.log(`[Scraping] Attempting to scrape website: ${url}`);
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
-    const response = await fetch(url, { 
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+  
+  const fetchEmails = async (targetUrl: string): Promise<string[]> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout per page
+      const response = await fetch(targetUrl, { 
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        }
+      });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        console.log(`[Scraping] Failed to fetch ${targetUrl}. Status: ${response.status}`);
+        return [];
       }
-    });
-    clearTimeout(timeoutId);
-    
-    if (!response.ok) {
-      console.log(`[Scraping] Failed to fetch ${url}. Status: ${response.status}`);
+      const html = await response.text();
+      const matchedEmails = html.match(emailRegex);
+      return matchedEmails || [];
+    } catch (e) {
+      console.error(`[Scraping] Error scraping ${targetUrl}:`, e);
       return [];
     }
-    const html = await response.text();
-    const emails = html.match(emailRegex);
+  };
+
+  let emails = await fetchEmails(url);
+
+  // If no emails found on main page, try common contact pages
+  if (emails.length === 0) {
+    const baseUrl = url.replace(/\/$/, "");
+    const contactPages = ["/iletisim", "/ileti%C5%9Fim", "/contact", "/bize-ulasin"];
+    
+    for (const page of contactPages) {
+      console.log(`[Scraping] No emails on main page, trying ${baseUrl}${page}`);
+      emails = await fetchEmails(`${baseUrl}${page}`);
+      if (emails.length > 0) {
+        break; // Stop trying if we found emails
+      }
+    }
+  }
+
+  try {
     if (emails && emails.length > 0) {
       // 1. Temel filtreleme (görsel uzantıları ve bilinen çöp/hata takip maillerini çıkar)
       let validEmails = emails
@@ -84,8 +110,20 @@ async function scrapeEmailFromWebsite(url: string): Promise<string[]> {
     } else {
       console.log(`[Scraping] No emails found for ${url}`);
     }
+
+    // Fallback: Generate info@domain.com if it's a custom domain
+    const domainMatch = url.match(/:\/\/(www\.)?([^\/]+)/);
+    const siteDomain = domainMatch ? domainMatch[2].toLowerCase() : "";
+    
+    const excludedDomains = ['google.com', 'blogspot.com', 'wordpress.com', 'wixsite.com', 'wix.com', 'instagram.com', 'facebook.com', 'twitter.com', 'linkedin.com', 'linktr.ee', 'weebly.com'];
+    
+    if (siteDomain && !excludedDomains.some(d => siteDomain.includes(d))) {
+      console.log(`[Scraping] Assuming info@${siteDomain} as a fallback.`);
+      return [`info@${siteDomain}`];
+    }
+
   } catch (e) {
-    console.error(`[Scraping] Error scraping ${url}:`, e);
+    console.error(`[Scraping] Error during filtering for ${url}:`, e);
   }
   return [];
 }

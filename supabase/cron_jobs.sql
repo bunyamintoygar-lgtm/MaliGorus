@@ -16,10 +16,10 @@ SELECT cron.schedule(
     $$
 );
 
--- 2. Half-hourly Promotional Emailer (Every 30 minutes, 09:00 to 18:59, Monday to Friday)
+-- 2. Half-hourly Promotional Emailer (Every 30 minutes, 09:00 to 17:30 TRT / 06:00 to 14:30 UTC, Monday to Friday)
 SELECT cron.schedule(
     'half_hourly_promotional_emailer',
-    '*/30 9-18 * * 1-5', -- Every 30 mins from 9am to 6pm (ends before 7pm) on weekdays
+    '*/30 6-14 * * 1-5', -- Every 30 mins from 6am to 2pm UTC (9am to 5:30pm TRT) on weekdays
     $$
     SELECT net.http_post(
         url:='https://[PROJECT_REF].supabase.co/functions/v1/send-promotional-emails',

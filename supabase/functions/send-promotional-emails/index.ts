@@ -275,6 +275,18 @@ const EMAIL_TEMPLATE = `
                             </tr>
                         </table>
                     </td>
+                <!-- YASAL UYARI VE UNSUBSCRIBE BÖLÜMÜ -->
+                <tr>
+                    <td style="background-color: #f4f6f9; padding: 20px 30px; text-align: center; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                        <p style="color: #888888; margin: 0 0 10px 0; font-size: 11px; line-height: 1.4;">
+                            MaliGörüş<br>
+                            Bu ticari elektronik ileti, açık kaynaklardan derlenen iletişim bilgileriniz üzerinden tarafınıza mesleki bilgilendirme ve tanıtım amacıyla gönderilmiştir.<br>
+                            <a href="https://www.maligorus.com/gizlilik/index.html" style="color: #666666; text-decoration: underline;">Gizlilik ve KVKK Politikası</a>
+                        </p>
+                        <p style="color: #888888; margin: 0; font-size: 11px;">
+                            MaliGörüş ağından gelecekte e-posta almak istemiyorsanız lütfen <a href="{{UNSUBSCRIBE_LINK}}" style="color: #cc0000; text-decoration: underline; font-weight: bold;">buraya tıklayarak abonelikten ayrılın</a>.
+                        </p>
+                    </td>
                 </tr>
 
             </table>
@@ -311,6 +323,7 @@ serve(async (req) => {
         .select("id, name, email")
         .eq("is_emailed", false)
         .not("email", "is", null)
+        .or("is_unsubscribed.is.null,is_unsubscribed.eq.false")
         .limit(1);
 
       if (fetchError) throw fetchError;
@@ -338,7 +351,8 @@ serve(async (req) => {
     for (const lead of leads) {
       if (!lead.email) continue;
       
-      const emailContent = EMAIL_TEMPLATE; // HTML template doesn't use {name} right now, but could be added later.
+      const unsubscribeLink = `${SUPABASE_URL}/functions/v1/unsubscribe?id=${lead.id}`;
+      const emailContent = EMAIL_TEMPLATE.replace("{{UNSUBSCRIBE_LINK}}", unsubscribeLink);
       
       try {
         await transporter.sendMail({

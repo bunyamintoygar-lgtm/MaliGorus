@@ -179,7 +179,7 @@ Kurallar:
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-5.4-mini", // Kullanıcının belirttiği yeni nesil model
+        model: "gpt-5.6-luna", // Kullanıcının belirttiği yeni nesil model
         messages: [{ role: "user", content: profilePrompt }],
         temperature: 0.9, // Çeşitliliği artırmak için temperature yükseltildi
       })
